@@ -8,33 +8,34 @@ const TransactionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['deposit', 'withdrawal', 'entryfee', 'winning', 'commission'],
+        enum: ['deposit', 'withdrawal', 'winning', 'entryfee', 'commission'],
         required: true
     },
     amount: {
         type: Number,
         required: true
     },
-    date: {
-        type: Date,
-        default: Date.now
-    },
-    status: {
+    cashfreeOrderId: {
         type: String,
-        enum: ['pending', 'pending_approval', 'success', 'failed'],
-        default: 'success'
+        unique: true,
+        sparse: true // Allows multiple null/undefined values for non-deposit types
     },
     detail: {
         type: String,
-        default: ""
+        default: ''
     },
-    cashfreeOrderId: {
+    status: {
         type: String,
-        default: ""
+        enum: ['pending', 'success', 'failed'],
+        default: 'pending'
     },
-    paymentDetails: {
+    upiId: {
         type: String,
-        default: "" // UPI ID or phone number for withdrawals
+        default: '' // For withdrawal processing
+    },
+    date: {
+        type: Date,
+        default: Date.now
     }
 });
 
