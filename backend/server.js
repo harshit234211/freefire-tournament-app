@@ -65,17 +65,26 @@ app.get('/', (req, res) => {
     res.json({ msg: 'Welcome to the FragArena API' });
 });
 
-app.get('/api/debug-db', (req, res) => {
+app.get('/api/debug-db', async (req, res) => {
     const states = {
         0: 'disconnected',
         1: 'connected',
         2: 'connecting',
         3: 'disconnecting'
     };
+    let errorMsg = null;
+    if (mongoose.connection.readyState !== 1 && process.env.MONGO_URI) {
+        try {
+            await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
+        } catch (err) {
+            errorMsg = err.message;
+        }
+    }
     res.json({
         readyState: states[mongoose.connection.readyState],
         dbName: mongoose.connection.name,
-        uriConfigured: !!process.env.MONGO_URI
+        uriConfigured: !!process.env.MONGO_URI,
+        error: errorMsg
     });
 });
 
