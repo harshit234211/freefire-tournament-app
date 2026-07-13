@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khiladi Battle - Free Fire Arena</title>
+    <!-- Google Fonts for eSports branding -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Cashfree Web Checkout SDK -->
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="fa-solid fa-fire logo-icon animate-glow"></i>
+                    <span>KHILADI<span class="highlight">BATTLE</span></span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="wallet-badge" onclick="switchTab('wallet')">
+                    <i class="fa-solid fa-coins"></i>
+                    <span id="header-balance">₹0</span>
+                    <button class="add-funds-btn"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <!-- Role Panels Quick Toggle Buttons -->
+                <button id="host-console-btn" class="role-badge-btn host-btn hidden" onclick="switchTab('host')">
+                    <i class="fa-solid fa-gamepad"></i> Host
+                </button>
+                <button id="admin-console-btn" class="role-badge-btn admin-btn hidden" onclick="switchTab('admin')">
+                    <i class="fa-solid fa-user-shield"></i> Admin
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Body Wrapper -->
+        <main class="app-content">
+
+            <!-- Active Announcement Broadcast Banner -->
+            <div id="announcement-banner" class="announcement-ticker hidden">
+                <div class="ticker-wrap">
+                    <div class="ticker-content" id="announcement-text">Welcome to Khiladi Battle! Play Free Fire, earn rewards, deposit instantly.</div>
+                </div>
+            </div>
+
+            <!-- VIEW 1: ARENA (TOURNAMENTS) -->
+            <section id="view-home" class="view-section active">
+                
+                <!-- Mega Promo eSports Banner -->
+                <div class="promo-banner">
+                    <div class="promo-info">
+                        <span class="promo-tag">BOOYAH SEASON</span>
+                        <h3>Free Fire Squad Championship</h3>
+                        <p>Register now, claim room codes, and dominate the battle royale!</p>
+                        <div class="promo-stats">
+                            <span><i class="fa-solid fa-award"></i> ₹10,000 Payout</span>
+                            <span><i class="fa-solid fa-gamepad"></i> Squad Custom</span>
+                        </div>
+                    </div>
+                    <div class="promo-glow"></div>
+                </div>
+
+                <!-- Match Category Filters (Upcoming, Ongoing, Completed) -->
+                <div class="arena-tabs">
+                    <button class="arena-tab active" onclick="filterMatches('upcoming', this)">
+                        <i class="fa-regular fa-clock"></i> Upcoming
+                    </button>
+                    <button class="arena-tab" onclick="filterMatches('ongoing', this)">
+                        <i class="fa-solid fa-circle-dot animate-pulse"></i> Live Lobby
+                    </button>
+                    <button class="arena-tab" onclick="filterMatches('completed', this)">
+                        <i class="fa-solid fa-circle-check"></i> Completed
+                    </button>
+                </div>
+
+                <!-- Tournaments listing grid -->
+                <div class="tournaments-list-container" id="tournaments-grid">
+                    <div class="loading-spinner">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Loading Battleground...
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 2: WALLET -->
+            <section id="view-wallet" class="view-section">
+                
+                <!-- Radiant Winnings & Deposit Dashboard -->
+                <div class="wallet-dashboard">
+                    <div class="wallet-stats-card">
+                        <span class="card-title">Total Wallet Balance</span>
+                        <h2 class="wallet-value" id="wallet-balance-total">₹0.00</h2>
+                        <div class="stats-divider"></div>
+                        <div class="sub-wallet-grid">
+                            <div class="sub-wallet">
+                                <span class="sub-label">Deposit Coins</span>
+                                <span class="sub-val" id="wallet-balance-deposit">₹0.00</span>
+                            </div>
+                            <div class="sub-wallet-line"></div>
+                            <div class="sub-wallet">
+                                <span class="sub-label">Winning Cash</span>
+                                <span class="sub-val highlight-green" id="wallet-balance-winning">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Actions Controller -->
+                <div class="wallet-controls">
+                    <div class="controls-tabs">
+                        <button class="control-tab active" onclick="switchWalletAction('add', this)">Deposit Cashfree</button>
+                        <button class="control-tab" onclick="switchWalletAction('withdraw', this)">Withdraw Money</button>
+                    </div>
+
+                    <!-- Deposit money form -->
+                    <div id="action-add-money" class="wallet-action-container active">
+                        <h3>Deposit Cashfree Sandbox</h3>
+                        <p class="action-desc">Add coins instantly (1 Coin = ₹1) using Cashfree payment simulator.</p>
+                        
+                        <div class="wallet-input-group">
+                            <span class="currency-prefix">₹</span>
+                            <input type="number" id="input-deposit-amount" min="10" placeholder="Amount (Min ₹10)">
+                        </div>
+
+                        <div class="quick-values">
+                            <button onclick="setDepositAmount(50)">+₹50</button>
+                            <button onclick="setDepositAmount(100)">+₹100</button>
+                            <button onclick="setDepositAmount(200)">+₹200</button>
+                            <button onclick="setDepositAmount(500)">+₹500</button>
+                        </div>
+
+                        <button class="btn btn-neon-orange btn-block" onclick="initializeCashfreeDeposit()">
+                            <i class="fa-solid fa-credit-card"></i> Pay via Cashfree
+                        </button>
+                    </div>
+
+                    <!-- Withdraw winnings form -->
+                    <div id="action-withdraw-money" class="wallet-action-container">
+                        <h3>Withdraw Winnings</h3>
+                        <p class="action-desc">Transfer cash directly to your UPI ID or Paytm. (Minimum withdrawal: ₹50)</p>
+                        
+                        <div class="wallet-input-group">
+                            <span class="currency-prefix">₹</span>
+                            <input type="number" id="input-withdraw-amount" min="50" placeholder="Withdrawal Amount">
+                        </div>
+
+                        <div class="form-field">
+                            <label>Payment Method</label>
+                            <select id="select-withdraw-method" onchange="adjustWithdrawLabel()">
+                                <option value="upi">UPI Address (e.g. name@upi)</option>
+                                <option value="paytm">Paytm Phone Number</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label id="withdraw-label-dynamic">UPI ID</label>
+                            <input type="text" id="input-withdraw-details" placeholder="Enter transfer address details">
+                        </div>
+
+                        <button class="btn btn-neon-green btn-block" onclick="submitWithdrawalRequest()">
+                            <i class="fa-solid fa-money-bill-transfer"></i> Submit Request
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Transaction Log -->
+                <div class="transactions-log-section">
+                    <h3>Transaction Statements</h3>
+                    <div class="transactions-scroller" id="transactions-scroller">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 3: LEADERBOARD -->
+            <section id="view-leaderboard" class="view-section">
+                
+                <div class="leaderboard-intro">
+                    <i class="fa-solid fa-trophy crown-gold"></i>
+                    <h2>SURVIVAL LEADERBOARD</h2>
+                    <p>Rankings of top warriors sorted by earnings</p>
+                </div>
+
+                <!-- Dynamic Top 3 Podium layout -->
+                <div class="podium-section">
+                    <div class="podium-spot spot-second">
+                        <div class="badge-ring silver"><i class="fa-solid fa-award"></i></div>
+                        <div class="podium-avatar"><i class="fa-solid fa-user-ninja"></i></div>
+                        <span class="podium-name" id="podium-name-2">Hunter_CS</span>
+                        <span class="podium-earned" id="podium-win-2">₹0</span>
+                    </div>
+                    <div class="podium-spot spot-first">
+                        <div class="badge-ring gold"><i class="fa-solid fa-crown"></i></div>
+                        <div class="podium-avatar"><i class="fa-solid fa-shield-halved"></i></div>
+                        <span class="podium-name" id="podium-name-1">Top_Booyah</span>
+                        <span class="podium-earned" id="podium-win-1">₹0</span>
+                    </div>
+                    <div class="podium-spot spot-third">
+                        <div class="badge-ring bronze"><i class="fa-solid fa-award"></i></div>
+                        <div class="podium-avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+                        <span class="podium-name" id="podium-name-3">Viper_FF</span>
+                        <span class="podium-earned" id="podium-win-3">₹0</span>
+                    </div>
+                </div>
+
+                <!-- Table details -->
+                <div class="leaderboard-table-wrapper">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Warrior</th>
+                                <th>Kills</th>
+                                <th>Winnings</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-rows">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VIEW 4: PROFILE -->
+            <section id="view-profile" class="view-section">
+                
+                <div class="profile-header-card">
+                    <div class="avatar-holder">
+                        <i class="fa-solid fa-skull"></i>
+                    </div>
+                    <h2 id="profile-title-name">Player Account</h2>
+                    <span id="profile-title-phone">+91 0000000000</span>
+                    
+                    <!-- Player Stats -->
+                    <div class="stats-strip">
+                        <div class="stat-element">
+                            <span class="stat-num" id="profile-stats-matches">0</span>
+                            <span class="stat-lbl">Matches</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num" id="profile-stats-kills">0</span>
+                            <span class="stat-lbl">Kills</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num" id="profile-stats-winnings">₹0</span>
+                            <span class="stat-lbl">Winnings</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-fields-container">
+                    <h3>Free Fire Game Setup</h3>
+                    <p class="field-info">Enter character details correctly. Mismatched details in room entries will cause disqualification without refunds.</p>
+                    
+                    <div class="form-field">
+                        <label>App Username</label>
+                        <input type="text" id="profile-username" placeholder="App Username">
+                    </div>
+                    <div class="form-field">
+                        <label>Free Fire IGN (In-Game Name)</label>
+                        <input type="text" id="profile-ffname" placeholder="e.g. 亗 CRIMINAL 亗">
+                    </div>
+                    <div class="form-field">
+                        <label>Free Fire Character UID</label>
+                        <input type="text" id="profile-ffuid" placeholder="e.g. 1098492048">
+                    </div>
+
+                    <button class="btn btn-neon-orange btn-block" onclick="updateProfileSettings()">
+                        <i class="fa-solid fa-floppy-disk"></i> Update Profile Credentials
+                    </button>
+                    
+                    <button class="btn btn-outline-danger btn-block" onclick="logoutSession()" style="margin-top: 16px;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout Account
+                    </button>
+                </div>
+            </section>
+
+            <!-- VIEW 5: SUPPORT -->
+            <section id="view-support" class="view-section">
+                <div class="support-intro-box">
+                    <i class="fa-solid fa-headset support-pulse-icon"></i>
+                    <h2>Support Desk</h2>
+                    <p>Have an entry payment issue or query about match results? We are online.</p>
+                </div>
+
+                <div class="support-options">
+                    <a href="https://wa.me/917017022966" target="_blank" class="whatsapp-support-card">
+                        <div class="support-card-left">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            <div>
+                                <h4>WhatsApp Support</h4>
+                                <p>Message directly for instant payout approvals</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="support-rules-card">
+                    <h3>Lobby Rules & Fair Play</h3>
+                    <ul class="support-rules-list">
+                        <li><i class="fa-solid fa-circle-chevron-right"></i> <strong>IDs Match:</strong> Free Fire character Name and UID must match your application profile. Joining custom rooms with other IDs will trigger a kick.</li>
+                        <li><i class="fa-solid fa-circle-chevron-right"></i> <strong>Hacks & Emulators:</strong> Hacks, mods, aimbots, or emulator devices are prohibited. Accounts caught cheating will be banned, and winnings frozen.</li>
+                        <li><i class="fa-solid fa-circle-chevron-right"></i> <strong>Lobby Timings:</strong> Room ID and Password will unlock exactly 15 minutes before the match start time. Be in the lobby before countdown ends.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- VIEW 6: HOST MANAGEMENT PANEL -->
+            <section id="view-host" class="view-section">
+                <div class="role-intro-header">
+                    <h2><i class="fa-solid fa-user-gear text-host"></i> Host Control Panel</h2>
+                    <p>Manage assigned matches, publish room codes, and submit scores.</p>
+                </div>
+
+                <div class="host-matches-scroller" id="host-matches-container">
+                    <div class="text-center text-muted">No matches currently assigned.</div>
+                </div>
+            </section>
+
+            <!-- VIEW 7: SUPER ADMIN DASHBOARD -->
+            <section id="view-admin" class="view-section">
+                <div class="role-intro-header">
+                    <h2><i class="fa-solid fa-shield-halved text-admin animate-glow"></i> Super Admin Panel</h2>
+                    <p>Configure matches, manage hosts, approve withdrawal files, and send broadcasts.</p>
+                </div>
+
+                <!-- Admin Action Sub-Tabs -->
+                <div class="admin-sub-tabs">
+                    <button class="admin-sub-tab active" onclick="switchAdminAction('match', this)">Launch Match</button>
+                    <button class="admin-sub-tab" onclick="switchAdminAction('users', this)">Users & Hosts</button>
+                    <button class="admin-sub-tab" onclick="switchAdminAction('earnings', this)">Earnings</button>
+                    <button class="admin-sub-tab" onclick="switchAdminAction('deposits', this)">Deposits</button>
+                    <button class="admin-sub-tab" onclick="switchAdminAction('withdrawals', this)">Withdrawals</button>
+                    <button class="admin-sub-tab" onclick="switchAdminAction('notify', this)">Broadcast</button>
+                </div>
+
+                <!-- Admin Sub-View 1: Create Tournament -->
+                <div id="admin-sub-match" class="admin-sub-content active">
+                    <h3>Host a New Free Fire Tournament</h3>
+                    <div class="admin-form-grid">
+                        <div class="form-field" style="grid-column: span 2;">
+                            <label style="color: var(--neon-orange); font-weight: 700;">Pre-set Tournament Template</label>
+                            <select id="adm-template" onchange="applyTournamentTemplate(this.value)" style="border: 2px solid var(--neon-orange); background: rgba(255,77,0,0.15); color: white;">
+                                <option value="">-- Manual Configuration (No Template) --</option>
+                                <option value="LW 1v1">Lone Wolf: 1 vs 1 (Skills OFF, Iron Cage, 2 Slots)</option>
+                                <option value="CS 4v4">Clash Squad: 4 vs 4 (Skills OFF, Bermuda, 8 Slots)</option>
+                                <option value="BR Squad">Battle Royale: Squad (Skills OFF, Bermuda, 48 Slots)</option>
+                                <option value="Sniper 1v1">Sniper Only: 1 vs 1 (Skills OFF, Headshot, 2 Slots)</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Match Title</label>
+                            <input type="text" id="adm-title" placeholder="e.g. Bermuda Booyah League #204">
+                        </div>
+                        <div class="form-field">
+                            <label>Match Date</label>
+                            <input type="date" id="adm-date">
+                        </div>
+                        <div class="form-field">
+                            <label>Match Time (e.g. 18:30)</label>
+                            <input type="time" id="adm-time">
+                        </div>
+                        <div class="form-field">
+                            <label>Map</label>
+                            <select id="adm-map">
+                                <option value="Bermuda">Bermuda</option>
+                                <option value="Bermuda Remastered">Bermuda Remastered</option>
+                                <option value="Purgatory">Purgatory</option>
+                                <option value="Kalahari">Kalahari</option>
+                                <option value="Alpine">Alpine</option>
+                                <option value="NeXTerra">NeXTerra</option>
+                                <option value="Random Map">Random Map</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Mode</label>
+                            <select id="adm-mode">
+                                <option value="Solo">BR: Solo</option>
+                                <option value="Duo">BR: Duo</option>
+                                <option value="Squad">BR: Squad</option>
+                                <option value="CS 1v1">CS: 1 vs 1</option>
+                                <option value="CS 2v2">CS: 2 vs 2</option>
+                                <option value="CS 4v4">CS: 4 vs 4</option>
+                                <option value="LW 1v1">LW: 1 vs 1</option>
+                                <option value="LW 2v2">LW: 2 vs 2</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Prize Pool (₹)</label>
+                            <input type="number" id="adm-prizepool" value="500">
+                        </div>
+                        <div class="form-field">
+                            <label>Per Kill Reward (₹)</label>
+                            <input type="number" id="adm-perkill" value="5">
+                        </div>
+                        <div class="form-field">
+                            <label>Entry Fee (₹)</label>
+                            <input type="number" id="adm-entryfee" value="20">
+                        </div>
+                        <div class="form-field">
+                            <label>Total Slots (Players)</label>
+                            <input type="number" id="adm-slots" value="48">
+                        </div>
+                        <div class="form-field">
+                            <label>Character Skills</label>
+                            <select id="adm-skills">
+                                <option value="true">Skills: ON</option>
+                                <option value="false" selected>Skills: OFF</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Gun Attributes</label>
+                            <select id="adm-attributes">
+                                <option value="true">Attributes: ON</option>
+                                <option value="false" selected>Attributes: OFF</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Body Shots (Body Allow)</label>
+                            <select id="adm-bodyshot">
+                                <option value="true" selected>Body Shot: ALLOWED</option>
+                                <option value="false">Body Shot: HEADSHOT ONLY</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Weapons Mode</label>
+                            <select id="adm-weapons">
+                                <option value="All" selected>All Weapons</option>
+                                <option value="Sniper Only">Sniper Only</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Unlimited Ammo</label>
+                            <select id="adm-ammo">
+                                <option value="false" selected>Ammo: NORMAL</option>
+                                <option value="true">Ammo: UNLIMITED</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Room Type</label>
+                            <select id="adm-roomtype">
+                                <option value="Normal" selected>Normal Custom</option>
+                                <option value="Tournament">Tournament Room</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Assign Host</label>
+                            <select id="adm-assign-host">
+                                <option value="">No Host (Admin Manage)</option>
+                                <!-- Injected dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-neon-orange btn-block" onclick="createMatchAdmin()">
+                        <i class="fa-solid fa-circle-plus"></i> Host Tournament Match
+                    </button>
+                </div>
+
+                <!-- Admin Sub-View 2: User Role Promotions -->
+                <div id="admin-sub-users" class="admin-sub-content">
+                    <h3>User Database & Host Promotions</h3>
+                    <p class="action-desc">Search users and promote them to Hosts or demote them back to Players.</p>
+                    
+                    <div class="admin-users-list" id="admin-users-list-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Admin Sub-View 3: Pending Withdrawals -->
+                <div id="admin-sub-withdrawals" class="admin-sub-content">
+                    <h3>Approve Withdrawal Transactions</h3>
+                    <p class="action-desc">Approve to confirm payout transfer, or reject to automatically refund the coins back to the user's winning balance.</p>
+                    
+                    <div class="admin-withdrawals-list" id="admin-withdrawals-container">
+                        <!-- Injected dynamically -->
+                     <!-- Admin Sub-View: Earnings Report -->
+                <div id="admin-sub-earnings" class="admin-sub-content">
+                    <h3>Admin Earnings & Analytics Dashboard</h3>
+                    <p class="action-desc">Overview of commission statements, collections, and live user actions.</p>
+                    
+                    <!-- Admin Wallet Earnings Timeframes -->
+                    <h4 style="margin: 15px 0 8px 0; color: var(--neon-orange); font-size: 13px;">ADMIN WALLET REVENUE</h4>
+                    <div class="stats-strip" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; background: rgba(255, 77, 0, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,77,0,0.15);">
+                        <div class="stat-element">
+                            <span class="stat-num text-cyan" id="adm-earn-today">₹0.00</span>
+                            <span class="stat-lbl">Today</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num text-cyan" id="adm-earn-week">₹0.00</span>
+                            <span class="stat-lbl">This Week</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num text-cyan" id="adm-earn-month">₹0.00</span>
+                            <span class="stat-lbl">This Month</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num text-cyan" id="adm-earn-year">₹0.00</span>
+                            <span class="stat-lbl">This Year</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num text-gold" id="adm-earn-lifetime">₹0.00</span>
+                            <span class="stat-lbl">Lifetime</span>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Analytics Dashboard Grid -->
+                    <h4 style="margin: 15px 0 8px 0; color: var(--cyan); font-size: 13px;">REAL-TIME SYSTEM ANALYTICS</h4>
+                    <div class="stats-strip" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; background: rgba(0,240,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,240,255,0.15);">
+                        <div class="stat-element">
+                            <span class="stat-num text-cyan" id="adm-stat-users">0</span>
+                            <span class="stat-lbl">Total Users</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num text-orange" id="adm-stat-regs">0</span>
+                            <span class="stat-lbl">Today Regs</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num text-green" id="adm-stat-deposits">₹0.00</span>
+                            <span class="stat-lbl">Today Deposits</span>
+                        </div>
+                        <div class="stat-element">
+                            <span class="stat-num text-red" id="adm-stat-withdrawals">₹0.00</span>
+                            <span class="stat-lbl">Today Payouts</span>
+                        </div>
+                    </div>
+
+                    <div class="transactions-log-section">
+                        <h3>Commission Payout Logs</h3>
+                        <div class="admin-withdrawals-list" id="admin-earnings-container" style="max-height: 250px; overflow-y: auto;">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Sub-View: Completed Deposits Log -->
+                <div id="admin-sub-deposits" class="admin-sub-content">
+                    <h3>Deposit Transactions Log</h3>
+                    <p class="action-desc">Audit history of all successful automatic cash deposits verified by Cashfree.</p>
+                    
+                    <div class="admin-withdrawals-list" id="admin-deposits-container" style="max-height: 450px; overflow-y: auto;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Admin Sub-View 4: Broadcast Announcement -->
+                <div id="admin-sub-notify" class="admin-sub-content">
+                    <h3>Send Live Broadcast Notification</h3>
+                    <p class="action-desc">Announcement details will reflect instantly in the sliding notification ticker for all players.</p>
+                    
+                    <div class="form-field">
+                        <label>Announcement Title</label>
+                        <input type="text" id="adm-announce-title" placeholder="e.g. Servers Online / Update">
+                    </div>
+                    <div class="form-field">
+                        <label>Message Content</label>
+                        <textarea id="adm-announce-content" rows="3" placeholder="Type notification message details..."></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label>Category Type</label>
+                        <select id="adm-announce-type">
+                            <option value="general">General Broadcast</option>
+                            <option value="match">Match Alert</option>
+                            <option value="winner">Winner Notification</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-neon-orange btn-block" onclick="sendBroadcastAnnouncement()">
+                        <i class="fa-solid fa-bullhorn"></i> Send Ticker Broadcast
+                    </button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Navigation Bar (Standard Players Mobile View) -->
+        <nav class="app-navigation" id="app-bottom-nav">
+            <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+                <i class="fa-solid fa-circle-nodes"></i>
+                <span>Arena</span>
+            </button>
+            <button class="nav-item" id="nav-wallet" onclick="switchTab('wallet')">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Wallet</span>
+            </button>
+            <button class="nav-item" id="nav-leaderboard" onclick="switchTab('leaderboard')">
+                <i class="fa-solid fa-ranking-star"></i>
+                <span>Rankings</span>
+            </button>
+            <button class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+                <i class="fa-solid fa-ghost"></i>
+                <span>Profile</span>
+            </button>
+            <button class="nav-item" id="nav-support" onclick="switchTab('support')">
+                <i class="fa-solid fa-headset"></i>
+                <span>Support</span>
+            </button>
+        </nav>
+
+        <!-- ==========================================
+             MODALS & OVERLAYS
+             ========================================== -->
+
+        <!-- MODAL: DETAILED MATCH OVERVIEW -->
+        <div class="modal-backdrop" id="match-details-modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3 id="modal-match-title">Lobby Details</h3>
+                    <button class="modal-close" onclick="closeModal('match-details-modal')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-payout-strip">
+                        <div class="payout-stat">
+                            <span class="p-lbl">Prize Pool</span>
+                            <span class="p-val text-gold" id="modal-prize-pool">₹0</span>
+                        </div>
+                        <div class="payout-stat">
+                            <span class="p-lbl">Per Kill</span>
+                            <span class="p-val text-cyan" id="modal-per-kill">₹0</span>
+                        </div>
+                        <div class="payout-stat">
+                            <span class="p-lbl">Entry Fee</span>
+                            <span class="p-val text-orange" id="modal-entry-fee">₹0</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-specs-grid">
+                        <div class="spec-item">
+                            <i class="fa-solid fa-map"></i>
+                            <div>
+                                <label>Map</label>
+                                <span id="modal-map">Bermuda</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fa-solid fa-user-group"></i>
+                            <div>
+                                <label>Mode</label>
+                                <span id="modal-mode">Solo</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            <div>
+                                <label>Date & Time</label>
+                                <span id="modal-schedule">18:00</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fa-solid fa-bolt"></i>
+                            <div>
+                                <label>Skills</label>
+                                <span id="modal-skills">OFF</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fa-solid fa-gun"></i>
+                            <div>
+                                <label>Attributes</label>
+                                <span id="modal-attributes">OFF</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fa-solid fa-skull"></i>
+                            <div>
+                                <label>Body Shot</label>
+                                <span id="modal-bodyshot">Allowed</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fa-solid fa-crosshairs"></i>
+                            <div>
+                                <label>Weapons</label>
+                                <span id="modal-weapons">All</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fa-solid fa-infinity"></i>
+                            <div>
+                                <label>Ammo Mode</label>
+                                <span id="modal-ammo">Normal</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fa-solid fa-gamepad"></i>
+                            <div>
+                                <label>Room Type</label>
+                                <span id="modal-roomtype">Normal</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Countdown & Credentials Unlock Panel -->
+                    <div class="room-credentials-box locked" id="modal-room-lock-panel">
+                        <div class="lock-header">
+                            <i class="fa-solid fa-lock lock-icon" id="modal-room-icon"></i>
+                            <h4 id="modal-room-heading">Room Credentials Locked</h4>
+                        </div>
+                        <p class="lock-desc" id="modal-room-desc">Credentials unlock 15 minutes before the match start time.</p>
+                        
+                        <!-- Live timer countdown -->
+                        <div class="countdown-timer font-special" id="modal-countdown-timer">00:00:00</div>
+
+                        <!-- Credentials Inputs with Copy Button -->
+                        <div class="credentials-inputs hidden" id="modal-credentials-group">
+                            <div class="cred-row">
+                                <span class="cred-label">Lobby ID</span>
+                                <div class="cred-copy-wrapper">
+                                    <span class="cred-value select-all" id="modal-room-id">Locked</span>
+                                    <button class="copy-btn" onclick="copyText('modal-room-id')"><i class="fa-regular fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div class="cred-row">
+                                <span class="cred-label">Password</span>
+                                <div class="cred-copy-wrapper">
+                                    <span class="cred-value select-all" id="modal-room-password">Locked</span>
+                                    <button class="copy-btn" onclick="copyText('modal-room-password')"><i class="fa-regular fa-copy"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registered players progress -->
+                    <div class="modal-joined-section">
+                        <div class="joined-stats">
+                            <span>Registered Warriors</span>
+                            <span class="text-orange" id="modal-joined-ratio">0/48</span>
+                        </div>
+                        <div class="modal-progressbar-track">
+                            <div class="modal-progressbar-fill" id="modal-progress-bar"></div>
+                        </div>
+                        <div class="registered-list" id="modal-joined-players-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="modal-action-footer">
+                    <!-- Dynamic button injected -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: HOST score resolver modal -->
+        <div class="modal-backdrop" id="host-resolve-modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>Submit Match Standings</h3>
+                    <button class="modal-close" onclick="closeModal('host-resolve-modal')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body" id="host-resolve-body">
+                    <!-- Dynamically populated list of joined players with inputs -->
+                </div>
+                <div class="modal-footer" id="host-resolve-footer">
+                    <!-- Submit button -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: SECURE CASHFREE SANDBOX PAYMENT SIMULATOR -->
+        <div class="modal-backdrop" id="cashfree-simulator-modal">
+            <div class="modal-card mini-modal">
+                <div class="modal-header">
+                    <h3>Cashfree Payment Gateway</h3>
+                    <button class="modal-close" onclick="closeModal('cashfree-simulator-modal')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="cf-badge"><i class="fa-solid fa-shield-halved"></i> SECURE DEPOSIT</div>
+                    
+                    <div class="cf-amount-badge">
+                        <span>Paying to Khiladi Battle</span>
+                        <h2 id="cf-modal-amount">₹0.00</h2>
+                    </div>
+
+                    <div class="cf-qr-box">
+                        <img id="cf-qr-image" src="" alt="UPI QR Code" style="width: 150px; height: 150px; margin: 10px auto; display: block; border-radius: 8px; border: 4px solid var(--neon-orange); background: white; padding: 4px;">
+                        <p>Scan UPI QR Code to Pay</p>
+                        <p style="font-size: 11px; color: var(--gold); font-weight: 700; margin-top: 6px;">UPI ID: 7017022966@ibl</p>
+                    </div>
+
+                    <p class="cf-disclaimer"><i class="fa-solid fa-circle-info"></i> Cashfree payment verification simulator. No real money will be charged.</p>
+
+                    <div class="cf-actions-grid">
+                        <button class="cf-payment-btn success-btn" onclick="executeCashfreeSimulation(true)">
+                            <i class="fa-regular fa-circle-check"></i> Simulate Success
+                        </button>
+                        <button class="cf-payment-btn fail-btn" onclick="executeCashfreeSimulation(false)">
+                            <i class="fa-regular fa-circle-xmark"></i> Simulate Fail
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OVERLAY: LOGIN & REGISTRATION -->
+        <div class="modal-backdrop active" id="auth-container">
+            <div class="modal-card">
+                <div class="auth-header-card">
+                    <i class="fa-solid fa-fire auth-logo-icon"></i>
+                    <h2 id="auth-title">LOGIN TO ARENA</h2>
+                    <p>Enter phone and password to retrieve account statistics.</p>
+                </div>
+                <div class="modal-body">
+                    
+                    <!-- Login Form -->
+                    <div id="auth-login-form">
+                        <div class="form-field">
+                            <label>Mobile Number</label>
+                            <input type="text" id="auth-login-phone" placeholder="Enter 10-digit number">
+                        </div>
+                        <div class="form-field">
+                            <label>Password</label>
+                            <input type="password" id="auth-login-pass" placeholder="Enter password">
+                        </div>
+                        <button class="btn btn-neon-orange btn-block" onclick="executeLogin()" style="margin-top: 10px;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login Account
+                        </button>
+                        <p class="auth-toggle-tip">
+                            New to Battlegrounds? <span onclick="toggleAuthForm('register')">Register Warrior</span>
+                        </p>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div id="auth-register-form" class="hidden">
+                        <div class="form-field">
+                            <label>Username (No spaces)</label>
+                            <input type="text" id="auth-reg-name" placeholder="e.g. Hunter_FF">
+                        </div>
+                        <div class="form-field">
+                            <label>Mobile Number</label>
+                            <input type="text" id="auth-reg-phone" placeholder="Enter 10-digit number">
+                        </div>
+                        <div class="form-field">
+                            <label>Password</label>
+                            <input type="password" id="auth-reg-pass" placeholder="Create strong password">
+                        </div>
+                        <button class="btn btn-neon-green btn-block" onclick="executeRegister()" style="margin-top: 10px;">
+                            <i class="fa-solid fa-user-plus"></i> Create Account
+                        </button>
+                        <p class="auth-toggle-tip">
+                            Already registered? <span onclick="toggleAuthForm('login')">Login here</span>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script integrations -->
+    <script src="app.js"></script>
+</body>
+</html>

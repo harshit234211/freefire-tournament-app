@@ -1,0 +1,8 @@
+{
+  "appId": "com.khiladibattle.app",
+  "appName": "Khiladi Battle",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
