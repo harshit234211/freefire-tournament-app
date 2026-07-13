@@ -65,6 +65,20 @@ app.get('/', (req, res) => {
     res.json({ msg: 'Welcome to the FragArena API' });
 });
 
+app.get('/api/debug-db', (req, res) => {
+    const states = {
+        0: 'disconnected',
+        1: 'connected',
+        2: 'connecting',
+        3: 'disconnecting'
+    };
+    res.json({
+        readyState: states[mongoose.connection.readyState],
+        dbName: mongoose.connection.name,
+        uriConfigured: !!process.env.MONGO_URI
+    });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
