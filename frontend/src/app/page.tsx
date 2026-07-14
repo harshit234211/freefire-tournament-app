@@ -5,10 +5,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Trophy, Wallet, Users, Home, Menu, Bell, ChevronLeft,
-  Clock, MapPin, Target, User, LogOut, Plus, Shield,
-  CheckCircle, XCircle, RefreshCw, Flame, Star, Zap,
-  MessageSquare, Send, Settings, TrendingUp, Award, Gift
+  Trophy, Home as HomeIcon, Menu, Bell, ChevronLeft,
+  Clock, User, LogOut, Plus,
+  CheckCircle, XCircle, RefreshCw,
+  TrendingUp, Gift
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://freefire-tournament-app.onrender.com/api';
@@ -1052,7 +1052,7 @@ export default function Home() {
         {([
           { id: 'earn', icon: Gift, label: 'Earn' },
           { id: 'leaderboard', icon: TrendingUp, label: 'Leaderboard' },
-          { id: 'home', icon: Home, label: 'Home' },
+          { id: 'home', icon: HomeIcon, label: 'Home' },
           { id: 'menu', icon: Menu, label: 'Menu' },
         ] as const).map(nav => (
           <button key={nav.id} onClick={() => setActiveNav(nav.id)}
