@@ -95,6 +95,8 @@ export default function Home() {
   const [joining, setJoining] = useState(false);
   const [joinSuccess, setJoinSuccess] = useState('');
   const [successWithdrawal, setSuccessWithdrawal] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   // Admin / Host
   const [showAdmin, setShowAdmin] = useState(false);
@@ -187,6 +189,29 @@ export default function Home() {
       .then(d => setTournaments(Array.isArray(d) ? d : []))
       .catch(() => {});
   }, []); // eslint-disable-line
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      console.log('User accepted PWA installation');
+    }
+    setDeferredPrompt(null);
+    setShowInstallBanner(false);
+  };
 
   // Timer for match detail
   useEffect(() => {
@@ -1074,9 +1099,30 @@ export default function Home() {
           <div className="bg-red-50 border-b border-red-100 px-4 py-2.5 text-center flex items-center justify-center gap-2 overflow-hidden shadow-sm">
             <span className="text-xs shrink-0">📢</span>
             <div className="text-[11px] text-red-700 font-black tracking-wide animate-pulse">
-              Deposit करने के बाद WhatsApp Support (<a href="https://wa.me/917017022966" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">7017022966</a>) पर UTR नंबर और Payment Screenshot ज़रूर भेजें!
+              Deposit करने के बाद WhatsApp Support (<a href="https://wa.me/917017022966" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">7017022966</a>) पर UTR नंबर and Payment Screenshot ज़रूर भेजें!
             </div>
           </div>
+
+          {showInstallBanner && (
+            <div className="bg-gradient-to-r from-[#132040] to-[#1a3060] px-4 py-3 flex justify-between items-center text-white border-b border-gray-700">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📲</span>
+                <div className="text-left">
+                  <p className="text-xs font-bold">Install FragArena App</p>
+                  <p className="text-[10px] text-gray-300">Play in full screen & get instant updates!</p>
+                </div>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => setShowInstallBanner(false)} className="text-xs text-gray-400 font-bold px-2 py-1">
+                  Later
+                </button>
+                <button onClick={handleInstallClick}
+                  className="bg-[#f5c518] text-black font-black text-[10px] px-3 py-1.5 rounded-lg shadow active:scale-95 transition">
+                  INSTALL
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* My Matches */}
           <div className="px-4 py-5">
