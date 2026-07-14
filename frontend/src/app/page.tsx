@@ -187,7 +187,7 @@ export default function Home() {
         cache: 'no-store'
       });
       const data = await res.json();
-      console.log(`Fetched ${Array.isArray(data) ? data.length : 0} tournaments`);
+      console.log('1. Raw API Response:', data);
       setTournaments(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error('Error fetching tournaments:', e);
@@ -441,19 +441,30 @@ export default function Home() {
   // ─── Filtered tournaments ─────────────────────────────────────────────────
   const categoryTournaments = selectedCategory
     ? tournaments.filter(t => {
+        if (!t.category) return false;
         if (selectedCategory === 'Other') {
-          return !GAME_CATEGORIES.some(c => c.id === t.category && c.id !== 'Other');
+          return !GAME_CATEGORIES.some(c => c.id.toLowerCase() === t.category.toLowerCase() && c.id !== 'Other');
         }
-        return t.category === selectedCategory;
+        return t.category.toLowerCase() === selectedCategory.toLowerCase();
       })
     : [];
 
   const filteredByTab = categoryTournaments.filter(t => {
-    if (contestTab === 'ongoing') return t.status === 'ongoing';
-    if (contestTab === 'upcoming') return t.status === 'upcoming';
-    if (contestTab === 'completed') return t.status === 'completed';
+    if (!t.status) return false;
+    const status = t.status.toLowerCase();
+    if (contestTab === 'ongoing') return status === 'ongoing';
+    if (contestTab === 'upcoming') return status === 'upcoming';
+    if (contestTab === 'completed') return status === 'completed';
     return true;
   });
+
+  // Logging filtered and final rendered lists as requested
+  useEffect(() => {
+    if (selectedCategory) {
+      console.log('2. Filtered tournaments for category:', selectedCategory, categoryTournaments);
+      console.log('3. Final rendered tournaments for tab:', contestTab, filteredByTab);
+    }
+  }, [selectedCategory, contestTab, tournaments, categoryTournaments, filteredByTab]);
 
   // ─── Loading Screen ───────────────────────────────────────────────────────
   if (loading) {
@@ -856,7 +867,7 @@ export default function Home() {
 
   // ─── My Matches Joined List Screen ──────────────────────────────────────────
   if (selectedMyMatchesTab) {
-    const filteredJoinedMatches = myMatches.filter(t => t.status === selectedMyMatchesTab);
+    const filteredJoinedMatches = myMatches.filter(t => t.status?.toLowerCase() === selectedMyMatchesTab.toLowerCase());
     return (
       <div className="min-h-screen bg-[#f0f2f5] pb-6">
         {/* Header */}
@@ -1191,9 +1202,9 @@ export default function Home() {
             <h2 className="text-center font-bold text-base text-[#132040] mb-4">My Matches</h2>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { id: 'ongoing', label: 'Ongoing', icon: RefreshCw, color: '#4CAF50', count: myMatches.filter(m => m.status === 'ongoing').length },
-                { id: 'upcoming', label: 'Upcoming', icon: Clock, color: '#1a73e8', count: myMatches.filter(m => m.status === 'upcoming').length },
-                { id: 'completed', label: 'Completed', icon: CheckCircle, color: '#4CAF50', count: myMatches.filter(m => m.status === 'completed').length },
+                { id: 'ongoing', label: 'Ongoing', icon: RefreshCw, color: '#4CAF50', count: myMatches.filter(m => m.status?.toLowerCase() === 'ongoing').length },
+                { id: 'upcoming', label: 'Upcoming', icon: Clock, color: '#1a73e8', count: myMatches.filter(m => m.status?.toLowerCase() === 'upcoming').length },
+                { id: 'completed', label: 'Completed', icon: CheckCircle, color: '#4CAF50', count: myMatches.filter(m => m.status?.toLowerCase() === 'completed').length },
               ].map((item, i) => (
                 <div key={i} onClick={() => setSelectedMyMatchesTab(item.id)}
                   className="bg-white rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm cursor-pointer active:scale-95 hover:shadow-md transition-all duration-200">
@@ -1219,9 +1230,9 @@ export default function Home() {
                {GAME_CATEGORIES.map(cat => {
                 let count = 0;
                 if (cat.id === 'Other') {
-                  count = tournaments.filter(t => t.status === 'upcoming' && !GAME_CATEGORIES.some(c => c.id === t.category && c.id !== 'Other')).length;
+                  count = tournaments.filter(t => t.status?.toLowerCase() === 'upcoming' && (!t.category || !GAME_CATEGORIES.some(c => c.id.toLowerCase() === t.category.toLowerCase() && c.id !== 'Other'))).length;
                 } else {
-                  count = tournaments.filter(t => t.category === cat.id && t.status === 'upcoming').length;
+                  count = tournaments.filter(t => t.category?.toLowerCase() === cat.id.toLowerCase() && t.status?.toLowerCase() === 'upcoming').length;
                 }
                 return (
                   <motion.div key={cat.id} whileTap={{ scale: 0.97 }}
