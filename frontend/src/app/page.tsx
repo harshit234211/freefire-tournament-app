@@ -138,6 +138,8 @@ export default function Home() {
   const [notifications] = useState<string[]>(['Welcome to FragArena!', 'New tournament added']);
 
   const timerRef = useRef<any>(null);
+  // Ref to track current nav state for popstate handler without stale closures
+  const navStateRef = useRef({ showJoinings: false, selectedMatch: null as any, selectedCategory: null as any, selectedMyMatchesTab: null as any, showWallet: false, showProfile: false, activeNav: 'home' as string });
 
   const getHeaders = useCallback((tk?: string | null) => ({
     'Content-Type': 'application/json',
@@ -186,6 +188,7 @@ export default function Home() {
     } catch {}
   }, []);
 
+  // ─── Effect 1: Auth + initial tournament load (runs once on mount) ────────
   useEffect(() => {
     const tk = localStorage.getItem('token');
     if (tk) {
@@ -197,55 +200,53 @@ export default function Home() {
         }).catch(() => { localStorage.removeItem('token'); })
         .finally(() => setLoading(false));
     } else { setLoading(false); }
-    // Load tournaments once on mount
     loadTournaments();
+  }, []); // eslint-disable-line
 
-    // Auto Refresh - Poll tournaments every 5 seconds
-    const pollInterval = setInterval(() => {
-      loadTournaments();
-    }, 5000);
+  // ─── Effect 2: Auto-refresh polling every 5 seconds ──────────────────────
+  useEffect(() => {
+    const pollInterval = setInterval(loadTournaments, 5000);
+    return () => clearInterval(pollInterval);
+  }, [loadTournaments]);
 
-    // Navigation back button interception for Android/PWA
-    // Push state to history to enable back button intercepting
-    window.history.pushState({ page: 'home' }, '');
-    
-    const handlePopState = (event: PopStateEvent) => {
-      // If we are deep inside screens, go back step-by-step
-      if (showJoinings) {
+  // ─── Effect 3: Keep navStateRef in sync with current nav state ────────────
+  useEffect(() => {
+    navStateRef.current = { showJoinings, selectedMatch, selectedCategory, selectedMyMatchesTab, showWallet, showProfile, activeNav };
+  }, [showJoinings, selectedMatch, selectedCategory, selectedMyMatchesTab, showWallet, showProfile, activeNav]);
+
+  // ─── Effect 4: Back button / popstate handler (runs once on mount) ────────
+  useEffect(() => {
+    // Push a dummy state so the back button triggers popstate instead of navigating away
+    window.history.pushState({ fragArena: true }, '');
+
+    const handlePopState = () => {
+      const nav = navStateRef.current;
+      // Restore history entry so back button keeps working
+      window.history.pushState({ fragArena: true }, '');
+
+      if (nav.showJoinings) {
         setShowJoinings(false);
-        window.history.pushState({ page: 'home' }, '');
-      } else if (selectedMatch) {
+      } else if (nav.selectedMatch) {
         setSelectedMatch(null);
-        window.history.pushState({ page: 'home' }, '');
-      } else if (selectedCategory) {
+      } else if (nav.selectedCategory) {
         setSelectedCategory(null);
-        window.history.pushState({ page: 'home' }, '');
-      } else if (selectedMyMatchesTab) {
+      } else if (nav.selectedMyMatchesTab) {
         setSelectedMyMatchesTab(null);
-        window.history.pushState({ page: 'home' }, '');
-      } else if (showWallet) {
+      } else if (nav.showWallet) {
         setShowWallet(false);
-        window.history.pushState({ page: 'home' }, '');
-      } else if (showProfile) {
+      } else if (nav.showProfile) {
         setShowProfile(false);
-        window.history.pushState({ page: 'home' }, '');
-      } else if (activeNav !== 'home') {
+      } else if (nav.activeNav !== 'home') {
         setActiveNav('home');
-        window.history.pushState({ page: 'home' }, '');
       } else {
-        // We are on home page, trigger exit confirmation dialog instead of closing
+        // Already on home — show exit confirmation
         setShowExitConfirm(true);
-        window.history.pushState({ page: 'home' }, '');
       }
     };
 
     window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      clearInterval(pollInterval);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [loadTournaments, showJoinings, selectedMatch, selectedCategory, selectedMyMatchesTab, showWallet, showProfile, activeNav]); // eslint-disable-line
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
