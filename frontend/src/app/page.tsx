@@ -94,6 +94,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState('');
   const [joining, setJoining] = useState(false);
   const [joinSuccess, setJoinSuccess] = useState('');
+  const [successWithdrawal, setSuccessWithdrawal] = useState<any>(null);
 
   // Admin / Host
   const [showAdmin, setShowAdmin] = useState(false);
@@ -267,9 +268,19 @@ export default function Home() {
         body: JSON.stringify({ amount: parseInt(withdrawAmt), upiId: withdrawUpi })
       });
       const data = await res.json();
-      setWalletMsg(res.ok ? '✅ Withdrawal requested!' : data.msg || 'Failed');
+      if (res.ok) {
+        setWalletMsg('✅ Withdrawal requested!');
+        setSuccessWithdrawal({
+          txId: data.transaction?.txId || 'N/A',
+          amount: data.transaction?.amount || withdrawAmt
+        });
+        setWithdrawAmt('');
+        setWithdrawUpi('');
+      } else {
+        setWalletMsg(data.msg || 'Failed');
+      }
     } catch { setWalletMsg('Connection error'); }
-    setTimeout(() => setWalletMsg(''), 3000);
+    setTimeout(() => setWalletMsg(''), 4000);
   };
 
   const handleVerifyDeposit = async () => {
@@ -1059,6 +1070,14 @@ export default function Home() {
 
       {activeNav === 'home' && (
         <>
+          {/* Important Deposit Notice */}
+          <div className="bg-red-50 border-b border-red-100 px-4 py-2.5 text-center flex items-center justify-center gap-2 overflow-hidden shadow-sm">
+            <span className="text-xs shrink-0">📢</span>
+            <div className="text-[11px] text-red-700 font-black tracking-wide animate-pulse">
+              Deposit करने के बाद WhatsApp Support (<a href="https://wa.me/917017022966" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">7017022966</a>) पर UTR नंबर और Payment Screenshot ज़रूर भेजें!
+            </div>
+          </div>
+
           {/* My Matches */}
           <div className="px-4 py-5">
             <h2 className="text-center font-bold text-base text-[#132040] mb-4">My Matches</h2>
@@ -1207,6 +1226,54 @@ export default function Home() {
                 </motion.div>
               </motion.div>
             )}
+
+            {successWithdrawal && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-4">
+                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
+                  className="bg-white rounded-2xl p-6 w-full max-w-sm text-center space-y-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600 text-2xl">
+                    ✅
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-bold text-lg text-[#132040]">Request Submitted!</h3>
+                    <p className="text-gray-500 text-xs mt-1">Your withdrawal request has been registered.</p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-2 text-left">
+                    <div>
+                      <p className="text-gray-400 text-[10px] uppercase font-bold">Request ID</p>
+                      <p className="text-gray-800 font-mono font-bold text-sm tracking-wider select-all">{successWithdrawal.txId}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-[10px] uppercase font-bold">Amount</p>
+                      <p className="text-green-600 font-black text-base">₹{successWithdrawal.amount}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-yellow-600 font-bold bg-yellow-50 rounded-xl p-3 border border-yellow-100 text-left leading-relaxed">
+                    ⚠️ <b>Important Notice:</b> Copy your Request ID and send it to Customer Care on WhatsApp to get instant verification and approval!
+                  </div>
+
+                  <div className="space-y-2">
+                    <button onClick={() => {
+                      navigator.clipboard.writeText(successWithdrawal.txId);
+                      const textMsg = encodeURIComponent(`Hello Admin, I have submitted a withdrawal request of ₹${successWithdrawal.amount}. My Request ID is: ${successWithdrawal.txId}. Please approve it.`);
+                      window.open(`https://api.whatsapp.com/send?phone=917017022966&text=${textMsg}`, '_blank');
+                    }}
+                      className="w-full bg-green-500 text-white font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow hover:bg-green-600 active:scale-95 transition">
+                      💬 Send Request ID to WhatsApp
+                    </button>
+
+                    <button onClick={() => setSuccessWithdrawal(null)}
+                      className="w-full py-2.5 text-gray-500 font-bold text-xs hover:underline">
+                      Close
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           {/* Withdraw */}
@@ -1279,6 +1346,16 @@ export default function Home() {
           {(user.role === 'admin' || user.role === 'host') && (
             <HostPanel user={user} token={token} getHeaders={getHeaders} tournaments={tournaments} setTournaments={setTournaments} setShowCreateMatch={setShowCreateMatch} setSelectedCategory={setSelectedCategory} API_URL={API_URL} />
           )}
+
+          {/* Customer Support Card */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm space-y-3">
+            <h3 className="font-bold text-sm text-[#132040]">💬 Customer Support</h3>
+            <p className="text-xs text-gray-500">Need help with deposits, withdrawals, or queries? Chat with us on WhatsApp.</p>
+            <a href="https://wa.me/917017022966" target="_blank" rel="noopener noreferrer"
+              className="w-full bg-green-500 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-green-600 active:scale-[0.98] transition">
+              💬 WhatsApp Support (7017022966)
+            </a>
+          </div>
 
           {/* Logout */}
           <button onClick={handleLogout}

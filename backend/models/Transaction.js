@@ -37,10 +37,23 @@ const TransactionSchema = new mongoose.Schema({
         type: String,
         default: '' // For manual deposit tracking
     },
+    txId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     date: {
         type: Date,
         default: Date.now
     }
+});
+
+TransactionSchema.pre('save', async function(next) {
+    if (!this.txId) {
+        const prefix = this.type === 'withdrawal' ? 'W' : (this.type === 'deposit' ? 'D' : 'TX');
+        this.txId = `${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
+    }
+    next();
 });
 
 module.exports = mongoose.model('Transaction', TransactionSchema);
