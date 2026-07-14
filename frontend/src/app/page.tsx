@@ -1656,6 +1656,11 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
   const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
 
+  const [usersSearch, setUsersSearch] = useState('');
+  const [searchedUsers, setSearchedUsers] = useState([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [updatingRole, setUpdatingRole] = useState(null);
+
   const fetchPendingTransactions = useCallback(async () => {
     if (user.role !== 'admin') return;
     setLoadingTransactions(true);
@@ -1710,6 +1715,51 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
       setMsg('Connection error');
     }
     setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleSearchUsers = async () => {
+    if (!usersSearch.trim()) return;
+    setSearchingUsers(true);
+    try {
+      const res = await fetch(`${API_URL}/admin/users?search=${encodeURIComponent(usersSearch)}`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        setSearchedUsers(await res.json());
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSearchingUsers(false);
+    }
+  };
+
+  const handleToggleHostRole = async (targetUser) => {
+    const newRole = targetUser.role === 'host' ? 'player' : 'host';
+    setUpdatingRole(targetUser._id);
+    try {
+      const res = await fetch(`${API_URL}/admin/users/${targetUser._id}/role`, {
+        method: 'POST',
+        headers: {
+          ...getHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSearchedUsers(prev => prev.map(u => u._id === targetUser._id ? { ...u, role: data.user.role } : u));
+        setMsg(`Role for ${targetUser.username} updated to ${data.user.role}!`);
+        setTimeout(() => setMsg(''), 3000);
+      } else {
+        const data = await res.json();
+        alert(data.msg || 'Failed to update role');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUpdatingRole(null);
+    }
   };
 
   const fetchHostedMatches = useCallback(async () => {
@@ -2319,6 +2369,45 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                   </button>
                 </form>
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Host Management (Admin Only) */}
+      {user.role === 'admin' && (
+        <div className="border-t pt-4 border-gray-100 space-y-3">
+          <p className="text-xs text-gray-500 font-bold">👥 Host Management</p>
+          
+          <div className="flex gap-2">
+            <input type="text" placeholder="Search user by Phone or Username" value={usersSearch}
+              onChange={e => setUsersSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearchUsers()}
+              className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]" />
+            <button onClick={handleSearchUsers} disabled={searchingUsers}
+              className="bg-[#132040] text-[#f5c518] font-bold px-3 py-2 rounded-xl text-xs hover:opacity-90 active:scale-95 transition">
+              {searchingUsers ? 'Searching...' : 'Search'}
+            </button>
+          </div>
+
+          {searchedUsers.length > 0 && (
+            <div className="border border-gray-100 rounded-xl p-3 bg-gray-50/50 space-y-2 max-h-[40vh] overflow-y-auto">
+              {searchedUsers.map(u => (
+                <div key={u._id} className="flex justify-between items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0">
+                  <div>
+                    <p className="font-bold text-gray-800">{u.username}</p>
+                    <p className="text-[10px] text-gray-400 font-mono">Phone: {u.phone} | Role: <span className="font-bold text-[#132040]">{u.role}</span></p>
+                  </div>
+                  <button onClick={() => handleToggleHostRole(u)} disabled={updatingRole === u._id}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition active:scale-95 ${
+                      u.role === 'host' 
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                        : 'bg-green-500 text-white hover:bg-green-600'
+                    }`}>
+                    {updatingRole === u._id ? 'Updating...' : u.role === 'host' ? 'Remove Host' : 'Make Host'}
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>

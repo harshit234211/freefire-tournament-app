@@ -69,8 +69,39 @@ router.get('/stats', auth, verifyAdmin, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/users', auth, verifyAdmin, async (req, res) => {
     try {
-        const users = await User.find().select('-password').sort({ date: -1 });
+        const { search } = req.query;
+        let query = {};
+        if (search) {
+            query = {
+                $or: [
+                    { username: { $regex: search, $options: 'i' } },
+                    { phone: { $regex: search, $options: 'i' } }
+                ]
+            };
+        }
+        const users = await User.find(query).select('-password').sort({ date: -1 }).limit(50);
         res.json(users);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// @route   POST api/admin/users/:id/role
+// @desc    Change user role (e.g. to 'host' or 'player')
+// @access  Private (Admin only)
+router.post('/users/:id/role', auth, verifyAdmin, async (req, res) => {
+    const { role } = req.body;
+    if (!['player', 'host', 'admin'].includes(role)) {
+        return res.status(400).json({ msg: 'Invalid role' });
+    }
+    try {
+        const userObj = await User.findById(req.params.id);
+        if (!userObj) return res.status(404).json({ msg: 'User not found' });
+        
+        userObj.role = role;
+        await userObj.save();
+        res.json({ success: true, user: { id: userObj.id, username: userObj.username, role: userObj.role } });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
