@@ -56,6 +56,14 @@ const ScheduleSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    settings: {
+        skills: { type: Boolean, default: true },
+        attributes: { type: Boolean, default: true },
+        bodyShot: { type: String, default: 'Allowed' },
+        weapons: { type: String, default: 'All' },
+        ammo: { type: String, default: 'Normal' },
+        roomType: { type: String, default: 'Normal' }
+    },
     enabled: {
         type: Boolean,
         default: true

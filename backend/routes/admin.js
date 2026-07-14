@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Tournament = require('../models/Tournament');
 const Transaction = require('../models/Transaction');
 const { sendTelegramAlert } = require('../utils/telegram');
+const Asset = require('../models/Asset');
 
 // Middleware to verify Admin role
 const verifyAdmin = async (req, res, next) => {
@@ -193,6 +194,13 @@ router.post('/tournaments/create', auth, verifyAdmin, async (req, res) => {
     }
 
     try {
+        const assets = await Asset.find();
+        let matchedBanner = '';
+        const matchedModeAsset = assets.find(a => a.type === 'mode' && a.name.toLowerCase() === category.toLowerCase());
+        const matchedMapAsset = assets.find(a => a.type === 'map' && a.name.toLowerCase() === (req.body.map || '').toLowerCase());
+        if (matchedModeAsset) matchedBanner = matchedModeAsset.thumbnailUrl;
+        else if (matchedMapAsset) matchedBanner = matchedMapAsset.thumbnailUrl;
+
         const tournament = new Tournament({
             title,
             category,
@@ -203,6 +211,13 @@ router.post('/tournaments/create', auth, verifyAdmin, async (req, res) => {
             perKill,
             totalSlots,
             host: hostId,
+            bannerImage: matchedBanner || '',
+            map: req.body.map || 'Bermuda',
+            teamType: req.body.teamType || 'Solo',
+            mode: req.body.mode || 'Solo',
+            matchType: req.body.matchType || 'Paid',
+            rules: req.body.rules || [],
+            prizeDistribution: req.body.prizeDistribution || [],
             settings: settings || {}
         });
 
@@ -411,7 +426,7 @@ router.get('/schedules', auth, verifyAdmin, async (req, res) => {
 // @desc    Create a new daily schedule template
 // @access  Private (Admin only)
 router.post('/schedules', auth, verifyAdmin, async (req, res) => {
-    const { time, category, title, entryFee, prizePool, perKill, totalSlots, teamType, mode, map, matchType, rules, prizeDistribution, notice } = req.body;
+    const { time, category, title, entryFee, prizePool, perKill, totalSlots, teamType, mode, map, matchType, rules, prizeDistribution, notice, settings } = req.body;
 
     if (!time || !category || !title || !entryFee || !prizePool) {
         return res.status(400).json({ msg: 'Please fill all required fields' });
@@ -430,7 +445,15 @@ router.post('/schedules', auth, verifyAdmin, async (req, res) => {
             matchType: matchType || 'Paid',
             rules: Array.isArray(rules) ? rules : (rules ? rules.split('\n').filter(r => r.trim()) : []),
             prizeDistribution: Array.isArray(prizeDistribution) ? prizeDistribution : [],
-            notice: notice || ''
+            notice: notice || '',
+            settings: {
+                skills: settings?.skills !== undefined ? settings.skills : true,
+                attributes: settings?.attributes !== undefined ? settings.attributes : true,
+                bodyShot: settings?.bodyShot || 'Allowed',
+                weapons: settings?.weapons || 'All',
+                ammo: settings?.ammo || 'Normal',
+                roomType: settings?.roomType || 'Normal'
+            }
         });
 
         await newSched.save();
@@ -474,6 +497,43 @@ router.delete('/schedules/:id', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, msg: 'Schedule template deleted successfully' });
     } catch (err) {
         console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+});
+
+// @route   GET api/admin/assets
+// @desc    Get all map/mode asset thumbnails
+// @access  Public/Private
+router.get('/assets', async (req, res) => {
+    try {
+        const assets = await Asset.find();
+        res.json(assets);
+    } catch (err) {
+        res.status(500).send('Server error');
+    }
+});
+
+// @route   POST api/admin/assets
+// @desc    Upload/save a permanent map or mode thumbnail
+// @access  Private (Admin only)
+router.post('/assets', auth, verifyAdmin, async (req, res) => {
+    const { type, name, thumbnailUrl } = req.body;
+    if (!type || !name || !thumbnailUrl) {
+        return res.status(400).json({ msg: 'Please provide all fields' });
+    }
+    try {
+        let asset = await Asset.findOne({ name: { $regex: new RegExp("^" + name.trim() + "$", "i") } });
+        if (asset) {
+            asset.thumbnailUrl = thumbnailUrl;
+            await asset.save();
+        } else {
+            asset = new Asset({ type, name: name.trim(), thumbnailUrl });
+            await asset.save();
+        }
+        res.json({ success: true, asset });
+    } catch (err) {
         res.status(500).send('Server error');
     }
 });
