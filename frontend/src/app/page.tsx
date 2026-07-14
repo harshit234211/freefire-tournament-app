@@ -427,7 +427,7 @@ export default function Home() {
 
   const filteredByTab = categoryTournaments.filter(t => {
     if (contestTab === 'ongoing') return t.status === 'ongoing';
-    if (contestTab === 'upcoming') return t.status === 'upcoming' && getIsUpcoming(t);
+    if (contestTab === 'upcoming') return t.status === 'upcoming';
     if (contestTab === 'completed') return t.status === 'completed';
     return true;
   });
@@ -1194,7 +1194,7 @@ export default function Home() {
             <h2 className="font-bold text-sm text-[#132040] mb-3">Esports Games</h2>
             <div className="grid grid-cols-2 gap-3">
                {GAME_CATEGORIES.map(cat => {
-                const count = tournaments.filter(t => t.category === cat.id && t.status === 'upcoming' && getIsUpcoming(t)).length;
+                const count = tournaments.filter(t => t.category === cat.id && t.status === 'upcoming').length;
                 return (
                   <motion.div key={cat.id} whileTap={{ scale: 0.97 }}
                     onClick={() => { setSelectedCategory(cat.id); setContestTab('upcoming'); }}
