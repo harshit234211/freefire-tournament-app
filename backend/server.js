@@ -26,7 +26,14 @@ app.use(cors({
         }
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+    allowedHeaders: [
+        'Content-Type', 
+        'Authorization', 
+        'x-auth-token', 
+        'cache-control', 
+        'pragma', 
+        'expires'
+    ],
     credentials: true
 }));
 
@@ -138,6 +145,17 @@ app.get('/api/debug-users', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+
+// Global Error Handler to guarantee CORS headers on crashes
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    res.status(500).json({ msg: 'Internal Server Error', error: err.message });
 });
 
 const PORT = process.env.PORT || 5000;
