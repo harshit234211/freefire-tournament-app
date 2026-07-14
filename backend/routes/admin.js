@@ -499,9 +499,6 @@ router.delete('/schedules/:id', auth, verifyAdmin, async (req, res) => {
         console.error(err.message);
         res.status(500).send('Server error');
     }
-});
-
-});
 
 // @route   GET api/admin/assets
 // @desc    Get all map/mode asset thumbnails
