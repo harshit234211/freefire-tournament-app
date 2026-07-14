@@ -1381,6 +1381,7 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
   const [editingNoticeId, setEditingNoticeId] = useState(null);
   const [matchNoticeInput, setMatchNoticeInput] = useState('');
   const [resolvingMatch, setResolvingMatch] = useState(null);
+  const [viewingPlayersMatch, setViewingPlayersMatch] = useState(null);
   const [playerStandings, setPlayerStandings] = useState([]);
   const [resolvingSubmitLoading, setResolvingSubmitLoading] = useState(false);
   const [msg, setMsg] = useState('');
@@ -1715,7 +1716,14 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                       {match.category}
                     </span>
                     <h4 className="font-bold text-xs text-gray-800 mt-1">{match.title}</h4>
-                    <p className="text-[10px] text-gray-400 mt-0.5">ID: {match.matchId} | Slots: {match.joinedPlayers?.length}/{match.totalSlots}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-gray-400 font-mono">ID: {match.matchId}</span>
+                      <span className="text-[10px] text-gray-300">|</span>
+                      <button onClick={() => setViewingPlayersMatch(match)}
+                        className="text-[10px] text-blue-600 font-bold bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded transition">
+                        Slots: {match.joinedPlayers?.length || 0}/{match.totalSlots} (View List)
+                      </button>
+                    </div>
                   </div>
                   <span className={`text-[10px] font-bold uppercase ${
                     match.status === 'completed' ? 'text-green-500' : 'text-blue-500'
@@ -2057,6 +2065,46 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                 {resolvingSubmitLoading ? 'Resolving Standings...' : 'Disburse Prize & Finish'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {viewingPlayersMatch && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-5 w-full max-w-sm max-h-[80vh] overflow-y-auto space-y-4">
+            <div className="flex justify-between items-center border-b pb-3">
+              <div>
+                <h3 className="font-bold text-sm text-[#132040]">Joined Players</h3>
+                <p className="text-[10px] text-gray-400">{viewingPlayersMatch.title} – {viewingPlayersMatch.matchId}</p>
+              </div>
+              <button onClick={() => setViewingPlayersMatch(null)} className="text-gray-400 font-bold">✕</button>
+            </div>
+
+            <div className="space-y-2">
+              {!viewingPlayersMatch.joinedPlayers || viewingPlayersMatch.joinedPlayers.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-6">No players have joined this match yet.</p>
+              ) : (
+                <div className="divide-y divide-gray-100 max-h-[50vh] overflow-y-auto pr-1">
+                  {viewingPlayersMatch.joinedPlayers.map((p: any, idx: number) => (
+                    <div key={idx} className="py-2.5 flex justify-between items-center text-xs">
+                      <div>
+                        <p className="font-bold text-gray-800">{p.name || p.user?.username || 'Player'}</p>
+                        <p className="text-[10px] text-gray-500 font-mono">UID: {p.uid || p.user?.ffUid || '--'}</p>
+                      </div>
+                      <div className="text-right text-[10px] text-gray-400">
+                        <p>Team: {p.teamNo || idx + 1}</p>
+                        <p>Pos: {p.position || 'A'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <button onClick={() => setViewingPlayersMatch(null)}
+              className="w-full py-3 bg-[#132040] text-white font-bold rounded-xl text-xs">
+              Close
+            </button>
           </div>
         </div>
       )}
