@@ -107,6 +107,7 @@ export default function Home() {
   const [successWithdrawal, setSuccessWithdrawal] = useState<any>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Admin / Host
   const [showAdmin, setShowAdmin] = useState(false);
@@ -197,11 +198,54 @@ export default function Home() {
         .finally(() => setLoading(false));
     } else { setLoading(false); }
     // Load tournaments once on mount
-    fetch(`${API_URL}/tournaments`)
-      .then(r => r.json())
-      .then(d => setTournaments(Array.isArray(d) ? d : []))
-      .catch(() => {});
-  }, []); // eslint-disable-line
+    loadTournaments();
+
+    // Auto Refresh - Poll tournaments every 5 seconds
+    const pollInterval = setInterval(() => {
+      loadTournaments();
+    }, 5000);
+
+    // Navigation back button interception for Android/PWA
+    // Push state to history to enable back button intercepting
+    window.history.pushState({ page: 'home' }, '');
+    
+    const handlePopState = (event: PopStateEvent) => {
+      // If we are deep inside screens, go back step-by-step
+      if (showJoinings) {
+        setShowJoinings(false);
+        window.history.pushState({ page: 'home' }, '');
+      } else if (selectedMatch) {
+        setSelectedMatch(null);
+        window.history.pushState({ page: 'home' }, '');
+      } else if (selectedCategory) {
+        setSelectedCategory(null);
+        window.history.pushState({ page: 'home' }, '');
+      } else if (selectedMyMatchesTab) {
+        setSelectedMyMatchesTab(null);
+        window.history.pushState({ page: 'home' }, '');
+      } else if (showWallet) {
+        setShowWallet(false);
+        window.history.pushState({ page: 'home' }, '');
+      } else if (showProfile) {
+        setShowProfile(false);
+        window.history.pushState({ page: 'home' }, '');
+      } else if (activeNav !== 'home') {
+        setActiveNav('home');
+        window.history.pushState({ page: 'home' }, '');
+      } else {
+        // We are on home page, trigger exit confirmation dialog instead of closing
+        setShowExitConfirm(true);
+        window.history.pushState({ page: 'home' }, '');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [loadTournaments, showJoinings, selectedMatch, selectedCategory, selectedMyMatchesTab, showWallet, showProfile, activeNav]); // eslint-disable-line
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -2327,6 +2371,35 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
               className="w-full py-3 bg-[#132040] text-white font-bold rounded-xl text-xs">
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Exit App Confirmation Overlay */}
+      {showExitConfirm && (
+        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+          <div className="bg-[#0a1628] border border-gray-800 rounded-2xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto text-red-500 text-xl font-bold">
+              ⚠️
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-white font-bold text-base">Exit FragArena?</h3>
+              <p className="text-gray-400 text-xs">Are you sure you want to exit the application?</p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setShowExitConfirm(false)}
+                className="flex-1 py-3 border border-gray-700 text-gray-300 font-semibold rounded-xl text-xs hover:bg-gray-850 active:scale-95 transition">
+                Cancel
+              </button>
+              <button onClick={() => {
+                setShowExitConfirm(false);
+                // Exit app/close tab
+                window.close();
+              }}
+                className="flex-1 py-3 bg-red-500 text-white font-black rounded-xl text-xs hover:bg-red-600 active:scale-95 transition">
+                Exit
+              </button>
+            </div>
           </div>
         </div>
       )}
