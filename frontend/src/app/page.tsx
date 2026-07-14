@@ -513,119 +513,93 @@ export default function Home() {
     })();
 
     return (
-      <div className="min-h-screen bg-[#f0f2f5] pb-6">
+      <div className="min-h-screen bg-white pb-24">
         {/* Header */}
-        <div className="bg-[#132040] px-4 py-4 flex items-center gap-3">
+        <div className="bg-[#042e5a] px-4 py-4 flex items-center gap-3 rounded-b-2xl shadow-md z-10 relative">
           <button onClick={() => setSelectedMatch(null)} className="text-white">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h2 className="text-white font-bold text-base flex-1 text-center">
-            Contest Details {selectedMatch.matchId}
+            Contest Details #{selectedMatch.matchId}
           </h2>
           <div className="w-6" />
         </div>
 
         {/* Banner */}
-        <div className="relative h-48 w-full overflow-hidden">
-          <img src={getCategoryThumbnail(selectedMatch.category)} alt={selectedMatch.category} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-white font-black text-2xl tracking-widest uppercase">
-                {selectedMatch.category}
-              </p>
-            </div>
-          </div>
-          {/* FF MAX badge */}
-          <div className="absolute top-3 right-3 bg-black/60 rounded px-2 py-1">
-            <span className="text-[#f5c518] text-xs font-bold">FREE FIRE MAX</span>
-          </div>
+        <div className="relative w-full overflow-hidden px-3 pt-3">
+          <img src={getCategoryThumbnail(selectedMatch.category)} alt={selectedMatch.category} className="w-full h-48 object-cover rounded-xl shadow-sm" />
         </div>
 
         <div className="px-4 py-4 space-y-4">
+          
+          {/* Room Details */}
+          <div className="text-center">
+            <h3 className="text-[#26a4d3] font-bold text-lg mb-3">Room Details</h3>
+            <div className="space-y-3">
+              <div className="flex items-center border-2 border-gray-600 rounded-xl overflow-hidden bg-white">
+                <div className="px-4 py-2 font-black text-xs border-r-2 border-gray-600 w-24 text-left">ID:</div>
+                <div className="flex-1 px-3 py-2 text-sm text-gray-700 font-medium text-left bg-gray-50 flex justify-between items-center">
+                  <span>{isRoomReleased && selectedMatch.roomId ? selectedMatch.roomId : 'Coming Soon'}</span>
+                  {isRoomReleased && selectedMatch.roomId && (
+                    <button onClick={() => navigator.clipboard.writeText(selectedMatch.roomId)}>
+                      <RefreshCw className="w-4 h-4 text-gray-500" /> {/* Using RefreshCw as a placeholder for copy if needed, or better, just use a generic copy icon or text */}
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center border-2 border-gray-600 rounded-xl overflow-hidden bg-white">
+                <div className="px-4 py-2 font-black text-xs border-r-2 border-gray-600 w-24 text-left">PASSWORD:</div>
+                <div className="flex-1 px-3 py-2 text-sm text-gray-700 font-medium text-left bg-gray-50 flex justify-between items-center">
+                  <span>{isRoomReleased && selectedMatch.roomPass ? selectedMatch.roomPass : 'Coming Soon'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Time Left */}
-          <div className="bg-white rounded-xl px-4 py-3 text-center shadow-sm">
+          <div className="border border-gray-200 rounded-lg px-4 py-2 text-center bg-white shadow-sm mt-5">
             <p className="text-gray-600 text-sm font-medium">Time Left: <span className="text-black font-bold">{timeLeft}</span></p>
           </div>
 
-          {/* Admin Announcement Notice */}
-          {selectedMatch.notice && (
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 shadow-sm flex items-start gap-3 animate-pulse">
-              <span className="text-lg">📢</span>
-              <div className="flex-1">
-                <p className="text-[10px] text-yellow-600 font-black uppercase tracking-wider mb-0.5">Admin Announcement</p>
-                <p className="text-xs text-yellow-800 font-bold leading-relaxed">{selectedMatch.notice}</p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Title */}
-          <p className="text-[#132040] font-bold text-sm leading-relaxed">
-            {selectedMatch.title} – {selectedMatch.matchId}
+          {/* Title row in blue */}
+          <p className="text-[#26a4d3] font-bold text-xs leading-relaxed uppercase">
+            {selectedMatch.title} 🚨 - ID#{selectedMatch.matchId}
           </p>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: `Team: ${selectedMatch.teamType}` },
-              { label: `Mode: ${selectedMatch.mode}` },
-              { label: `Map: ${selectedMatch.map}` },
-            ].map((tag, i) => (
-              <span key={i} className="border border-gray-300 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 bg-white">
-                {tag.label}
-              </span>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="border border-gray-300 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 bg-white">
-              Match Type: {selectedMatch.matchType}
-            </span>
-            <span className="border border-gray-300 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 bg-white flex items-center gap-1">
-              Entry Fee: 🪙 {selectedMatch.entryFee}
-            </span>
-          </div>
-
-          {/* Schedule */}
-          <div className="bg-white rounded-xl px-4 py-3 shadow-sm text-center">
-            <p className="text-gray-600 text-sm">
-              Match Schedule: <span className="font-bold text-black">{selectedMatch.date} at {selectedMatch.time}</span>
-            </p>
-          </div>
-
-          {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'PRIZE POOL', value: `🪙 ${selectedMatch.prizePool}` },
-              { label: 'PER KILL', value: `🪙 ${selectedMatch.perKill}` },
-              { label: 'ENTRY FEE', value: `🪙 ${selectedMatch.entryFee}` },
-            ].map((s, i) => (
-              <div key={i} className="bg-white rounded-xl p-3 shadow-sm text-center">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">{s.label}</p>
-                <p className="font-bold text-sm text-[#132040]">{s.value}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Spots */}
-          <div className="bg-white rounded-xl px-4 py-3 shadow-sm">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-red-500 text-xs font-bold">Only {spotsLeft} Spot{spotsLeft !== 1 ? 's' : ''} Left</span>
-              <span className="text-xs text-gray-500">{selectedMatch.joinedPlayers?.length || 0}/{selectedMatch.totalSlots}</span>
+          {/* Tags Grids */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="border border-gray-300 rounded px-2 py-2 text-center bg-white shadow-sm">
+              <p className="text-xs text-gray-600">Team: <span className="font-bold">{selectedMatch.teamType}</span></p>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-red-500 h-2 rounded-full transition-all"
-                style={{ width: `${Math.min(100, ((selectedMatch.joinedPlayers?.length || 0) / selectedMatch.totalSlots) * 100)}%` }} />
+            <div className="border border-gray-300 rounded px-2 py-2 text-center bg-white shadow-sm">
+              <p className="text-xs text-gray-600">Mode: <span className="font-bold">{selectedMatch.mode}</span></p>
+            </div>
+            <div className="border border-gray-300 rounded px-2 py-2 text-center bg-white shadow-sm">
+              <p className="text-xs text-gray-600">Map: <span className="font-bold">{selectedMatch.map}</span></p>
             </div>
           </div>
 
-          {/* Prize Details */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="border border-gray-300 rounded px-2 py-2 text-center bg-white shadow-sm">
+              <p className="text-xs text-gray-600">Match Type: <span className="font-bold">{selectedMatch.matchType}</span></p>
+            </div>
+            <div className="border border-gray-300 rounded px-2 py-2 text-center bg-white shadow-sm">
+              <p className="text-xs text-gray-600">Entry Fee: <span className="font-bold text-[#f5c518]">🪙 {selectedMatch.entryFee}</span></p>
+            </div>
+          </div>
+
+          <div className="border border-gray-300 rounded px-4 py-2 text-center bg-white shadow-sm">
+            <p className="text-xs text-gray-600">Match Schedule: <span className="font-bold">{selectedMatch.date} at {selectedMatch.time}</span></p>
+          </div>
+
+          {/* Prize Details Box */}
           {selectedMatch.prizeDistribution?.length > 0 && (
-            <div>
-              <p className="text-[#1a73e8] font-bold text-sm mb-2">Prize Details</p>
-              <div className="bg-white rounded-xl p-4 shadow-sm space-y-2">
+            <div className="mt-4">
+              <p className="text-[#26a4d3] font-bold text-sm mb-2">Prize Details</p>
+              <div className="border border-gray-300 bg-white p-4 space-y-2 shadow-sm">
                 {selectedMatch.prizeDistribution.map((pd: any, i: number) => (
-                  <p key={i} className="text-sm text-gray-700">
-                    {['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th'][i] || `${i + 1}th`} place: <span className="font-semibold">{pd.prize}</span>
+                  <p key={i} className="text-sm font-bold text-gray-700">
+                    {['Top 1', 'Top 2', 'Top 3', 'Top 4', 'Top 5', 'Top 6', 'Top 7', 'Top 8', 'Top 9', 'Top 10'][i] || `Top ${i + 1}`} :- {pd.prize}
                   </p>
                 ))}
               </div>
@@ -634,21 +608,21 @@ export default function Home() {
 
           {/* About Match / Rules */}
           {selectedMatch.rules?.length > 0 && (
-            <div>
-              <p className="text-[#1a73e8] font-bold text-sm mb-2">About this Match</p>
-              <div className="bg-[#eef2ff] rounded-xl p-4 shadow-sm">
-                <p className="font-bold text-center text-sm text-gray-800 mb-3">Rules and Regulations</p>
-                <ul className="space-y-3">
+            <div className="mt-4">
+              <p className="text-[#26a4d3] font-bold text-sm mb-2">About this Match</p>
+              <div className="bg-[#f0f0fa] p-4 shadow-sm border-t-2 border-gray-400">
+                <p className="font-bold text-center text-base text-black mb-4">Rules and Regulations</p>
+                <div className="border-t border-gray-400 mb-4" />
+                <ul className="space-y-4">
                   {selectedMatch.rules.map((rule: string, i: number) => (
-                    <li key={i} className="flex gap-2 text-sm text-gray-700">
-                      <span className="text-black font-bold mt-0.5">●</span>
+                    <li key={i} className="flex gap-3 text-sm text-gray-800 font-semibold items-start">
+                      <span className="text-black font-black mt-1 text-[10px]">●</span>
                       <span>{rule}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
-          )}
 
           {/* Match Results (if completed) */}
           {selectedMatch.status === 'completed' && (
@@ -775,27 +749,29 @@ export default function Home() {
             </div>
           )}
 
-          {/* View All Joinings */}
-          <button onClick={() => setShowJoinings(true)}
-            className="w-full py-3 rounded-xl border border-[#f5c518] text-[#f5c518] font-bold text-sm hover:bg-[#f5c518]/10 transition">
-            VIEW ALL JOININGS
-          </button>
+          <div className="fixed bottom-0 left-0 right-0 bg-white p-3 space-y-2 border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20">
+            {/* View All Joinings */}
+            <button onClick={() => setShowJoinings(true)}
+              className="w-full py-3 rounded-lg bg-[#132040] text-white font-bold text-sm tracking-wide shadow-sm hover:opacity-90 transition">
+              VIEW JOINED PLAYERS
+            </button>
 
-          {/* Join Button */}
-          {isFull ? (
-            <button disabled className="w-full py-4 rounded-xl bg-[#1a73e8] text-white font-black text-sm tracking-widest opacity-80">
-              Joining Full
-            </button>
-          ) : joined ? (
-            <button disabled className="w-full py-4 rounded-xl bg-green-500 text-white font-black text-sm tracking-widest">
-              ✅ Already Joined
-            </button>
-          ) : (
-            <button onClick={() => handleJoin(selectedMatch._id)} disabled={joining}
-              className="w-full py-4 rounded-xl bg-green-500 text-white font-black text-sm tracking-widest hover:bg-green-600 transition active:scale-95">
-              {joining ? 'Joining...' : `JOIN (🪙 ${selectedMatch.entryFee})`}
-            </button>
-          )}
+            {/* Join Button */}
+            {isFull ? (
+              <button disabled className="w-full py-3 rounded-lg bg-gray-300 text-white font-bold text-sm tracking-wide shadow-sm">
+                JOINING FULL
+              </button>
+            ) : joined ? (
+              <button disabled className="w-full py-3 rounded-lg bg-green-500 text-white font-bold text-sm tracking-wide shadow-sm">
+                ✅ ALREADY JOINED
+              </button>
+            ) : (
+              <button onClick={() => handleJoin(selectedMatch._id)} disabled={joining}
+                className="w-full py-3 rounded-lg bg-[#8cc63f] text-white font-bold text-sm tracking-wide shadow-sm hover:bg-green-500 transition active:scale-95">
+                {joining ? 'JOINING...' : `JOIN MATCH (🪙 ${selectedMatch.entryFee})`}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -804,8 +780,8 @@ export default function Home() {
   // ─── All Joinings Screen ──────────────────────────────────────────────────
   if (showJoinings && selectedMatch) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="bg-[#132040] px-4 py-4 flex items-center gap-3">
+      <div className="min-h-screen bg-white pb-20 relative">
+        <div className="bg-[#042e5a] px-4 py-4 flex items-center gap-3 shadow-md rounded-b-2xl">
           <button onClick={() => setShowJoinings(false)} className="text-white">
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -813,23 +789,23 @@ export default function Home() {
           <div className="w-6" />
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto mt-4 px-2">
+          <table className="w-full text-sm bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-3 py-3 text-left text-xs text-gray-500 font-semibold">Team No.</th>
-                <th className="px-3 py-3 text-left text-xs text-gray-500 font-semibold">Pos.</th>
-                <th className="px-3 py-3 text-left text-xs text-gray-500 font-semibold">In Game Name</th>
-                <th className="px-3 py-3 text-left text-xs text-gray-500 font-semibold">In Game Id</th>
+                <th className="px-3 py-4 text-left text-[11px] text-gray-500 font-bold uppercase">Team No.</th>
+                <th className="px-3 py-4 text-left text-[11px] text-gray-500 font-bold uppercase">Pos.</th>
+                <th className="px-3 py-4 text-left text-[11px] text-gray-500 font-bold uppercase">In Game Name</th>
+                <th className="px-3 py-4 text-left text-[11px] text-gray-500 font-bold uppercase">In Game Id</th>
               </tr>
             </thead>
             <tbody>
               {selectedMatch.joinedPlayers?.map((p: any, i: number) => (
-                <tr key={i} className="border-b border-gray-100">
-                  <td className="px-3 py-3 text-gray-700">{p.teamNo || i + 1}</td>
-                  <td className="px-3 py-3 text-gray-700">{p.position || 'A'}</td>
-                  <td className="px-3 py-3 font-semibold text-gray-900">{p.name || p.user?.username || '--'}</td>
-                  <td className="px-3 py-3 text-gray-500">{p.uid || p.user?.ffUid || '--'}</td>
+                <tr key={i} className="border-b border-gray-100 bg-white">
+                  <td className="px-3 py-4 text-gray-600 font-medium">{p.teamNo || i + 1}</td>
+                  <td className="px-3 py-4 text-gray-600 font-medium">{p.position || 'A'}</td>
+                  <td className="px-3 py-4 font-semibold text-gray-900">{p.name || p.user?.username || '--'}</td>
+                  <td className="px-3 py-4 text-gray-600 font-medium">{p.uid || p.user?.ffUid || '--'}</td>
                 </tr>
               ))}
             </tbody>
@@ -840,12 +816,11 @@ export default function Home() {
         </div>
 
         {/* Bottom buttons */}
-        <div className="fixed bottom-0 left-0 right-0 flex">
-          <button className="flex-1 py-4 bg-[#132040] text-[#f5c518] font-bold text-sm">
+        <div className="fixed bottom-0 left-0 right-0 flex h-14 z-20">
+          <button className="flex-1 bg-[#58d68d] text-white font-bold tracking-wide hover:opacity-90 active:scale-95 transition">
             MY ENTRIES
           </button>
-          <button onClick={() => setShowJoinings(false)}
-            className="flex-1 py-4 bg-[#1a73e8] text-white font-bold text-sm">
+          <button onClick={() => setShowJoinings(false)} className="flex-1 bg-[#54a0ff] text-white font-bold tracking-wide hover:opacity-90 active:scale-95 transition">
             SHOW DETAILS
           </button>
         </div>
@@ -944,7 +919,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-[#f0f2f5] pb-6">
         {/* Header */}
-        <div className="bg-[#132040] px-4 py-4 flex items-center gap-3">
+        <div className="bg-[#042e5a] px-4 py-4 flex items-center gap-3 rounded-b-2xl shadow-md z-10 relative">
           <button onClick={() => setSelectedCategory(null)} className="text-white">
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -955,11 +930,14 @@ export default function Home() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 bg-white">
-          {(['ongoing', 'upcoming', 'completed'] as const).map(tab => (
-            <button key={tab} onClick={() => setContestTab(tab)}
-              className={`flex-1 py-3 text-sm font-semibold capitalize transition ${contestTab === tab ? 'text-[#1a73e8] border-b-2 border-[#1a73e8]' : 'text-gray-500'}`}>
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+        <div className="flex bg-[#042e5a] px-4 pt-2 -mt-4 pb-0 rounded-b-2xl shadow-sm z-0 relative">
+          {[{ id: 'ongoing', label: 'Ongoing' }, { id: 'upcoming', label: 'Upcoming' }, { id: 'completed', label: 'Resulted' }].map(tab => (
+            <button key={tab.id} onClick={() => setContestTab(tab.id as any)}
+              className={`flex-1 py-3 text-sm font-semibold transition-all relative ${contestTab === tab.id ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}>
+              {tab.label}
+              {contestTab === tab.id && (
+                <div className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-white rounded-t-full" />
+              )}
             </button>
           ))}
         </div>
@@ -969,7 +947,7 @@ export default function Home() {
           {filteredByTab.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No {contestTab} contests</p>
+              <p>No {contestTab === 'completed' ? 'resulted' : contestTab} contests</p>
             </div>
           ) : filteredByTab.map(match => {
             const isFull = match.joinedPlayers?.length >= match.totalSlots;
@@ -977,77 +955,71 @@ export default function Home() {
             return (
               <motion.div key={match._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                 onClick={() => setSelectedMatch(match)}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition">
+                className="bg-white rounded-xl overflow-hidden shadow-md cursor-pointer active:scale-[0.99] transition border border-gray-100">
                 {/* Banner */}
-                {/* Banner */}
-                <div className="h-44 w-full overflow-hidden relative">
+                <div className="h-44 w-full overflow-hidden relative bg-black">
                   <img src={getCategoryThumbnail(match.category)} alt={match.category} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-white font-black text-xl tracking-widest uppercase">{match.category}</p>
-                      <p className="text-yellow-300 text-xs font-semibold mt-1">TOURNAMENT</p>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 bg-black/60 rounded px-2 py-1">
-                    <span className="text-[#f5c518] text-xs font-bold">FREE FIRE MAX</span>
-                  </div>
                   {match.status === 'ongoing' && (
-                    <div className="absolute top-3 left-3 bg-green-500 rounded px-2 py-1">
-                      <span className="text-white text-xs font-bold">🔴 LIVE</span>
+                    <div className="absolute top-3 left-3 bg-red-500 rounded px-2 py-1">
+                      <span className="text-white text-xs font-bold uppercase tracking-widest animate-pulse">Live</span>
                     </div>
                   )}
+                  {/* Avatar overlay - simulated */}
+                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
+                    <div className="w-12 h-12 rounded-full border-2 border-red-500 bg-[#042e5a] shadow-lg flex items-center justify-center overflow-hidden">
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Info */}
-                <div className="p-4">
+                <div className="p-4 pt-8">
                   <p className="font-bold text-sm text-gray-900 mb-1 leading-snug">{match.title}</p>
-                  <p className="text-gray-400 text-xs mb-3">Time : {match.date} at {match.time}</p>
+                  <p className="text-gray-500 text-xs mb-4">Time : {match.date} at {match.time}</p>
 
-                  <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="grid grid-cols-3 gap-y-4 mb-4">
                     <div className="text-center">
-                      <p className="text-gray-400 text-[10px] uppercase">Prize Pool</p>
-                      <p className="font-bold text-sm">🪙 {match.prizePool}</p>
+                      <p className="text-gray-400 text-[10px] uppercase font-bold mb-1">Prize Pool</p>
+                      <p className="font-bold text-sm text-gray-800 flex items-center justify-center gap-1">🪙 {match.prizePool}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-gray-400 text-[10px] uppercase">Per Kill</p>
-                      <p className="font-bold text-sm">🪙 {match.perKill}</p>
+                      <p className="text-gray-400 text-[10px] uppercase font-bold mb-1">Per Kill</p>
+                      <p className="font-bold text-sm text-gray-800 flex items-center justify-center gap-1">🪙 {match.perKill}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-gray-400 text-[10px] uppercase">Entry Fee</p>
-                      <p className="font-bold text-sm">🪙 {match.entryFee}</p>
+                      <p className="text-gray-400 text-[10px] uppercase font-bold mb-1">Entry Fee</p>
+                      <p className="font-bold text-sm text-[#f5c518] flex items-center justify-center gap-1">🪙 {match.entryFee}</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <p className="text-gray-400 text-[10px] uppercase font-bold mb-1">Type</p>
+                      <p className="font-bold text-sm text-gray-800">{match.teamType}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-gray-400 text-[10px] uppercase font-bold mb-1">Entry Per Player</p>
+                      <p className="font-bold text-sm text-gray-800">{match.totalSlots}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-gray-400 text-[10px] uppercase font-bold mb-1">Map</p>
+                      <p className="font-bold text-sm text-gray-800">{match.map}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 mb-3">
-                    <div className="text-center">
-                      <p className="text-gray-400 text-[10px] uppercase">Type</p>
-                      <p className="font-semibold text-xs">{match.teamType}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-400 text-[10px] uppercase">Entry/Player</p>
-                      <p className="font-semibold text-xs">{match.totalSlots}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-400 text-[10px] uppercase">Map</p>
-                      <p className="font-semibold text-xs">{match.map}</p>
-                    </div>
-                  </div>
-
-                  {/* Spots bar */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-red-500 text-[10px] font-bold">Only {spotsLeft} Spot Left</span>
-                        <span className="text-gray-400 text-[10px]">{match.joinedPlayers?.length || 0}/{match.totalSlots}</span>
+                  {/* Spots bar & Join button */}
+                  <div className="flex items-end justify-between border-t border-gray-200 mt-2 pt-3">
+                    <div className="flex-1 mr-4 pb-1">
+                      <div className="flex justify-between text-[11px] mb-1 font-bold">
+                        <span className="text-red-500">Only {spotsLeft} Spot{spotsLeft !== 1 ? 's' : ''} Left</span>
+                        <span className="text-red-500">{match.joinedPlayers?.length || 0}/{match.totalSlots}</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div className="bg-red-500 h-1.5 rounded-full"
+                      <div className="w-full bg-gray-200 h-[3px]">
+                        <div className="bg-red-500 h-[3px]"
                           style={{ width: `${Math.min(100, ((match.joinedPlayers?.length || 0) / match.totalSlots) * 100)}%` }} />
                       </div>
                     </div>
-                    <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${isFull ? 'bg-[#1a73e8] text-white' : 'bg-green-500 text-white'}`}>
+                    <button className={`px-4 py-2 rounded font-bold text-sm tracking-wide ${isFull ? 'bg-[#54a0ff] text-white' : 'bg-[#8cc63f] text-white'}`}>
                       {isFull ? 'Joining Full' : 'Join Now'}
-                    </span>
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -1412,98 +1384,116 @@ export default function Home() {
       )}
 
       {activeNav === 'menu' && (
-        <div className="px-4 py-5 space-y-3">
-          <h2 className="font-bold text-base text-[#132040] mb-4 text-center">Menu</h2>
+        <div className="min-h-screen bg-[#f0f2f5] pb-24">
+          {/* Top Blue Section */}
+          <div className="bg-[#042e5a] px-4 pt-10 pb-6 rounded-b-3xl shadow-md text-center relative z-10">
+            <div className="inline-block relative">
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center p-1 mx-auto shadow-lg relative z-10">
+                <div className="w-full h-full bg-gradient-to-br from-[#042e5a] to-[#1a73e8] rounded-full flex items-center justify-center border-2 border-dashed border-[#f5c518]">
+                  <span className="text-white font-black text-3xl">{user.username.charAt(0).toUpperCase()}</span>
+                </div>
+              </div>
+            </div>
+            <h2 className="text-white font-bold text-xl mt-3">{user.username}</h2>
+            <p className="text-gray-300 text-sm mt-1">{user.phone}</p>
+            {user.role === 'admin' && (
+              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded font-bold mt-2 inline-block">ADMIN</span>
+            )}
+          </div>
 
-          {/* Profile */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#132040] to-[#1a73e8] rounded-full flex items-center justify-center">
-                <User className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-gray-900">{user.username}</p>
-                <p className="text-xs text-gray-500">{user.phone}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${user.role === 'admin' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
-                  {user.role?.toUpperCase()}
-                </span>
-              </div>
+          {/* Stats Row */}
+          <div className="flex justify-center gap-4 px-4 -mt-4 relative z-20">
+            <div className="bg-white rounded-xl shadow-md p-3 flex-1 text-center border border-gray-100">
+              <p className="text-[#042e5a] font-black text-xl">0</p>
+              <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Matches<br/>Played</p>
             </div>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="bg-[#f0f2f5] rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-500">FF Name</p>
-                <p className="font-bold text-sm truncate">{user.ffName || 'Not set'}</p>
-              </div>
-              <div className="bg-[#f0f2f5] rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-500">FF UID</p>
-                <p className="font-bold text-sm truncate">{user.ffUid || 'Not set'}</p>
-              </div>
+            <div className="bg-white rounded-xl shadow-md p-3 flex-1 text-center border border-gray-100">
+              <p className="text-[#042e5a] font-black text-xl">0</p>
+              <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Total<br/>Kills</p>
             </div>
-            {/* Edit Profile */}
-            <div className="space-y-3">
-              <input value={ffName} onChange={e => setFfName(e.target.value)}
-                placeholder="Free Fire Name" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518] text-gray-900" />
-              <input value={ffUid} onChange={e => setFfUid(e.target.value)}
-                placeholder="Free Fire UID" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518] text-gray-900" />
-              <button onClick={handleProfileUpdate}
-                className="w-full bg-[#132040] text-[#f5c518] font-bold py-3 rounded-xl text-sm">
-                UPDATE PROFILE
-              </button>
+            <div className="bg-white rounded-xl shadow-md p-3 flex-1 text-center border border-gray-100">
+              <p className="text-[#042e5a] font-black text-xl">0</p>
+              <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Total<br/>Earning</p>
             </div>
           </div>
 
-          {/* Refer & Earn Card */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">📢</span>
-              <h3 className="font-bold text-sm text-[#132040]">Refer & Earn Coins</h3>
-            </div>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Invite your friends to FragArena! When they register with your Referral Code, **both of you get 10 coins bonus** instantly.
-            </p>
-            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex justify-between items-center">
-              <div>
-                <p className="text-[9px] text-gray-400 font-bold uppercase">Your Referral Code</p>
-                <p className="text-[#132040] font-black text-sm select-all">{user.username}</p>
+          {/* FF Profile Details (Edit) */}
+          <div className="px-4 mt-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-4">
+              <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
+                <User className="w-5 h-5 text-[#042e5a]" />
+                <h3 className="font-bold text-[#042e5a] text-sm flex-1">MY PROFILE (Free Fire Info)</h3>
               </div>
+              <div className="space-y-3">
+                <input value={ffName} onChange={e => setFfName(e.target.value)}
+                  placeholder="Free Fire Name" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#042e5a] text-gray-900 bg-gray-50" />
+                <input value={ffUid} onChange={e => setFfUid(e.target.value)}
+                  placeholder="Free Fire UID" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#042e5a] text-gray-900 bg-gray-50" />
+                <button onClick={handleProfileUpdate}
+                  className="w-full bg-[#042e5a] text-white font-bold py-3 rounded-xl text-xs tracking-wide">
+                  UPDATE PROFILE
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Menu Options List */}
+          <div className="px-4 mt-4 mb-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <button onClick={() => setActiveNav('earn')} className="w-full flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition">
+                <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
+                  <span className="text-xl">💳</span> MY WALLET
+                </div>
+                <ChevronLeft className="w-5 h-5 text-gray-400 rotate-180" />
+              </button>
+              
+              <button onClick={() => setSelectedMyMatchesTab('completed')} className="w-full flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition">
+                <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
+                  <span className="text-xl">🎮</span> MY MATCHES
+                </div>
+                <ChevronLeft className="w-5 h-5 text-gray-400 rotate-180" />
+              </button>
+              
+              <button onClick={() => setActiveNav('leaderboard')} className="w-full flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition">
+                <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
+                  <span className="text-xl">📊</span> TOP PLAYERS
+                </div>
+                <ChevronLeft className="w-5 h-5 text-gray-400 rotate-180" />
+              </button>
+
+              <a href="https://wa.me/917017022966" target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition">
+                <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
+                  <span className="text-xl">📞</span> CUSTOMER SUPPORT
+                </div>
+                <ChevronLeft className="w-5 h-5 text-gray-400 rotate-180" />
+              </a>
+
               <button onClick={() => {
-                navigator.clipboard.writeText(user.username);
-                alert('Referral code copied to clipboard!');
-              }}
-                className="bg-blue-50 text-blue-600 font-bold text-xs px-3 py-1.5 rounded-lg active:scale-95 transition">
-                Copy
+                const inviteText = encodeURIComponent(`Hey! Play Free Fire matches on FragArena & earn real cash! 🎮🏆\n\nRegister using my Referral Code: ${user.username} to get 10 Welcome Bonus Coins instantly!\n\nDownload/Join App here: ${window.location.origin}`);
+                window.open(`https://api.whatsapp.com/send?text=${inviteText}`, '_blank');
+              }} className="w-full flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition">
+                <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
+                  <span className="text-xl">📢</span> REFER & EARN
+                </div>
+                <ChevronLeft className="w-5 h-5 text-gray-400 rotate-180" />
+              </button>
+
+              <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 hover:bg-red-50 active:bg-red-100 transition group">
+                <div className="flex items-center gap-3 text-sm font-bold text-red-500 group-hover:text-red-600">
+                  <span className="text-xl">🚪</span> LOGOUT
+                </div>
+                <LogOut className="w-4 h-4 text-red-400 group-hover:text-red-500" />
               </button>
             </div>
-            <button onClick={() => {
-              const inviteText = encodeURIComponent(`Hey! Play Free Fire matches on FragArena & earn real cash! 🎮🏆\n\nRegister using my Referral Code: ${user.username} to get 10 Welcome Bonus Coins instantly!\n\nDownload/Join App here: ${window.location.origin}`);
-              window.open(`https://api.whatsapp.com/send?text=${inviteText}`, '_blank');
-            }}
-              className="w-full bg-[#132040] text-[#f5c518] font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition">
-              📢 Share Code on WhatsApp
-            </button>
           </div>
 
-          {/* Host / Admin Panel */}
+          {/* Host / Admin Panel (if applicable) */}
           {(user.role === 'admin' || user.role === 'host') && (
-            <HostPanel user={user} token={token} getHeaders={getHeaders} tournaments={tournaments} setTournaments={setTournaments} setShowCreateMatch={setShowCreateMatch} setSelectedCategory={setSelectedCategory} API_URL={API_URL} />
+            <div className="px-4 mb-6">
+              <HostPanel user={user} token={token} getHeaders={getHeaders} tournaments={tournaments} setTournaments={setTournaments} setShowCreateMatch={setShowCreateMatch} setSelectedCategory={setSelectedCategory} API_URL={API_URL} />
+            </div>
           )}
 
-          {/* Customer Support Card */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm space-y-3">
-            <h3 className="font-bold text-sm text-[#132040]">💬 Customer Support</h3>
-            <p className="text-xs text-gray-500">Need help with deposits, withdrawals, or queries? Chat with us on WhatsApp.</p>
-            <a href="https://wa.me/917017022966" target="_blank" rel="noopener noreferrer"
-              className="w-full bg-green-500 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-green-600 active:scale-[0.98] transition">
-              💬 WhatsApp Support (7017022966)
-            </a>
-          </div>
-
-          {/* Logout */}
-          <button onClick={handleLogout}
-            className="w-full bg-red-500 text-white font-bold py-4 rounded-2xl text-sm flex items-center justify-center gap-2">
-            <LogOut className="w-5 h-5" />
-            LOGOUT
-          </button>
         </div>
       )}
 
