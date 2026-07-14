@@ -824,43 +824,43 @@ export default function Home() {
                   </button>
                 </div>
                 <form onSubmit={handleCreateMatch} className="space-y-4">
-                  <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Match Title" value={newMatch.title} onChange={e => setNewMatch({...newMatch, title: e.target.value})} required />
-                  <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.category} onChange={e => setNewMatch({...newMatch, category: e.target.value})}>
+                  <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900" placeholder="Match Title" value={newMatch.title} onChange={e => setNewMatch({...newMatch, title: e.target.value})} required />
+                  <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white" value={newMatch.category} onChange={e => setNewMatch({...newMatch, category: e.target.value})}>
                     {GAME_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
                   <div className="grid grid-cols-2 gap-3">
-                    <input className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Date (YYYY-MM-DD)" value={newMatch.date} onChange={e => setNewMatch({...newMatch, date: e.target.value})} required />
-                    <input className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Time (HH:MM AM/PM)" value={newMatch.time} onChange={e => setNewMatch({...newMatch, time: e.target.value})} required />
+                    <input className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900" placeholder="Date (YYYY-MM-DD)" value={newMatch.date} onChange={e => setNewMatch({...newMatch, date: e.target.value})} required />
+                    <input className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900" placeholder="Time (HH:MM AM/PM)" value={newMatch.time} onChange={e => setNewMatch({...newMatch, time: e.target.value})} required />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Entry Fee" value={newMatch.entryFee} onChange={e => setNewMatch({...newMatch, entryFee: e.target.value})} required />
-                    <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Prize Pool" value={newMatch.prizePool} onChange={e => setNewMatch({...newMatch, prizePool: e.target.value})} required />
-                    <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Per Kill" value={newMatch.perKill} onChange={e => setNewMatch({...newMatch, perKill: e.target.value})} />
+                    <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900" placeholder="Entry Fee" value={newMatch.entryFee} onChange={e => setNewMatch({...newMatch, entryFee: e.target.value})} required />
+                    <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900" placeholder="Prize Pool" value={newMatch.prizePool} onChange={e => setNewMatch({...newMatch, prizePool: e.target.value})} required />
+                    <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900" placeholder="Per Kill" value={newMatch.perKill} onChange={e => setNewMatch({...newMatch, perKill: e.target.value})} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Total Slots" value={newMatch.totalSlots} onChange={e => setNewMatch({...newMatch, totalSlots: e.target.value})} required />
-                    <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.map} onChange={e => setNewMatch({...newMatch, map: e.target.value})}>
+                    <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900" placeholder="Total Slots" value={newMatch.totalSlots} onChange={e => setNewMatch({...newMatch, totalSlots: e.target.value})} required />
+                    <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white" value={newMatch.map} onChange={e => setNewMatch({...newMatch, map: e.target.value})}>
                       <option>Bermuda</option><option>Kalahari</option><option>Purgatory</option><option>Alpine</option>
                     </select>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.teamType} onChange={e => setNewMatch({...newMatch, teamType: e.target.value})}>
+                    <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white" value={newMatch.teamType} onChange={e => setNewMatch({...newMatch, teamType: e.target.value})}>
                       <option>Solo</option><option>Duo</option><option>Squad</option>
                     </select>
-                    <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.mode} onChange={e => setNewMatch({...newMatch, mode: e.target.value})}>
+                    <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white" value={newMatch.mode} onChange={e => setNewMatch({...newMatch, mode: e.target.value})}>
                       <option>Solo</option><option>1v1</option><option>2v2</option><option>4v4</option>
                     </select>
-                    <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.matchType} onChange={e => setNewMatch({...newMatch, matchType: e.target.value})}>
+                    <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white" value={newMatch.matchType} onChange={e => setNewMatch({...newMatch, matchType: e.target.value})}>
                       <option>Paid</option><option>Free</option>
                     </select>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">Prize Distribution (format: 1st:55,2nd:40,...)</label>
-                    <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.prizeDistribution} onChange={e => setNewMatch({...newMatch, prizeDistribution: e.target.value})} />
+                    <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900" value={newMatch.prizeDistribution} onChange={e => setNewMatch({...newMatch, prizeDistribution: e.target.value})} />
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">Rules (one per line)</label>
-                    <textarea rows={4} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none" placeholder="Room Entry Recording is compulsory..." value={newMatch.rules} onChange={e => setNewMatch({...newMatch, rules: e.target.value})} />
+                    <textarea rows={4} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none text-gray-900" placeholder="Room Entry Recording is compulsory..." value={newMatch.rules} onChange={e => setNewMatch({...newMatch, rules: e.target.value})} />
                   </div>
                   <button type="submit" className="w-full bg-[#132040] text-[#f5c518] font-bold py-4 rounded-xl text-sm tracking-widest">
                     CREATE MATCH
@@ -1018,7 +1018,7 @@ export default function Home() {
             <div className="flex gap-3">
               <input type="number" placeholder="Amount (₹)" value={depositAmt}
                 onChange={e => setDepositAmt(e.target.value)}
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518]" />
+                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518] text-gray-900" />
               <button onClick={handleDeposit}
                 className="bg-[#132040] text-[#f5c518] font-bold px-5 py-3 rounded-xl text-sm">
                 PAY
@@ -1060,10 +1060,10 @@ export default function Home() {
             <div className="space-y-3">
               <input type="number" placeholder="Amount (₹)" value={withdrawAmt}
                 onChange={e => setWithdrawAmt(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518]" />
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518] text-gray-900" />
               <input type="text" placeholder="Your UPI ID" value={withdrawUpi}
                 onChange={e => setWithdrawUpi(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518]" />
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518] text-gray-900" />
               <button onClick={handleWithdraw}
                 className="w-full bg-green-500 text-white font-bold py-3 rounded-xl text-sm">
                 WITHDRAW
@@ -1110,9 +1110,9 @@ export default function Home() {
             {/* Edit Profile */}
             <div className="space-y-3">
               <input value={ffName} onChange={e => setFfName(e.target.value)}
-                placeholder="Free Fire Name" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518]" />
+                placeholder="Free Fire Name" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518] text-gray-900" />
               <input value={ffUid} onChange={e => setFfUid(e.target.value)}
-                placeholder="Free Fire UID" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518]" />
+                placeholder="Free Fire UID" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518] text-gray-900" />
               <button onClick={handleProfileUpdate}
                 className="w-full bg-[#132040] text-[#f5c518] font-bold py-3 rounded-xl text-sm">
                 UPDATE PROFILE
@@ -1437,10 +1437,10 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                     <div className="grid grid-cols-2 gap-2">
                       <input type="text" placeholder="Room ID" value={roomIdInput}
                         onChange={e => setRoomIdInput(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none" />
+                        className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none text-gray-900" />
                       <input type="text" placeholder="Password" value={roomPassInput}
                         onChange={e => setRoomPassInput(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none" />
+                        className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none text-gray-900" />
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => setEditingRoomId(null)}
@@ -1563,13 +1563,13 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                           <label className="text-[9px] text-gray-500 font-medium block mb-0.5">Kills</label>
                           <input type="number" min="0" value={p.kills}
                             onChange={e => handleUpdateStanding(idx, 'kills', e.target.value)}
-                            className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900" />
                         </div>
                         <div>
                           <label className="text-[9px] text-gray-500 font-medium block mb-0.5">Rank (1 for winner)</label>
                           <input type="number" min="1" value={p.rank}
                             onChange={e => handleUpdateStanding(idx, 'rank', e.target.value)}
-                            className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900" />
                         </div>
                       </div>
                     </div>
