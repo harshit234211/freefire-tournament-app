@@ -447,6 +447,18 @@ export default function Home() {
             <p className="text-gray-600 text-sm font-medium">Time Left: <span className="text-black font-bold">{timeLeft}</span></p>
           </div>
 
+          {/* Admin Announcement Notice */}
+          {selectedMatch.notice && (
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 shadow-sm flex items-start gap-3 animate-pulse">
+              <span className="text-lg">📢</span>
+              <div className="flex-1">
+                <p className="text-[10px] text-yellow-600 font-black uppercase tracking-wider mb-0.5">Admin Announcement</p>
+                <p className="text-xs text-yellow-800 font-bold leading-relaxed">{selectedMatch.notice}</p>
+              </div>
+            </motion.div>
+          )}
+
           {/* Title */}
           <p className="text-[#132040] font-bold text-sm leading-relaxed">
             {selectedMatch.title} – {selectedMatch.matchId}
@@ -1366,6 +1378,8 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [roomIdInput, setRoomIdInput] = useState('');
   const [roomPassInput, setRoomPassInput] = useState('');
+  const [editingNoticeId, setEditingNoticeId] = useState(null);
+  const [matchNoticeInput, setMatchNoticeInput] = useState('');
   const [resolvingMatch, setResolvingMatch] = useState(null);
   const [playerStandings, setPlayerStandings] = useState([]);
   const [resolvingSubmitLoading, setResolvingSubmitLoading] = useState(false);
@@ -1458,6 +1472,7 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
   const [schedPerKill, setSchedPerKill] = useState('0');
   const [schedTotalSlots, setSchedTotalSlots] = useState('2');
   const [schedRules, setSchedRules] = useState('');
+  const [schedNotice, setSchedNotice] = useState('');
 
   const fetchSchedules = useCallback(async () => {
     if (user.role !== 'admin') return;
@@ -1482,7 +1497,8 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
       prizePool: parseInt(schedPrizePool),
       perKill: parseInt(schedPerKill || 0),
       totalSlots: parseInt(schedTotalSlots || 20),
-      rules: schedRules
+      rules: schedRules,
+      notice: schedNotice
     };
 
     try {
@@ -1554,6 +1570,7 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
     setSchedPerKill(String(sched.perKill || 0));
     setSchedTotalSlots(String(sched.totalSlots || 20));
     setSchedRules(Array.isArray(sched.rules) ? sched.rules.join('\n') : (sched.rules || ''));
+    setSchedNotice(sched.notice || '');
     setShowScheduleForm(true);
   };
 
@@ -1567,6 +1584,7 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
     setSchedPerKill('0');
     setSchedTotalSlots('2');
     setSchedRules('');
+    setSchedNotice('');
     setShowScheduleForm(true);
   };
 
@@ -1586,6 +1604,27 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
       if (res.ok) {
         setMsg('Room info updated!');
         setEditingRoomId(null);
+        fetchHostedMatches();
+      } else {
+        const data = await res.json();
+        setMsg(data.msg || 'Update failed');
+      }
+    } catch {
+      setMsg('Connection error');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleSaveNotice = async (matchId) => {
+    try {
+      const res = await fetch(`${API_URL}/host/match/${matchId}/notice`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ notice: matchNoticeInput })
+      });
+      if (res.ok) {
+        setMsg('Match notice announcement updated!');
+        setEditingNoticeId(null);
         fetchHostedMatches();
       } else {
         const data = await res.json();
@@ -1695,6 +1734,13 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                       className="flex-1 py-1.5 bg-gray-100 text-gray-700 font-semibold rounded-lg text-[10px] hover:bg-gray-200">
                       Set Room ID/Pass
                     </button>
+                    <button onClick={() => {
+                      setEditingNoticeId(match._id);
+                      setMatchNoticeInput(match.notice || '');
+                    }}
+                      className="flex-1 py-1.5 bg-yellow-100 text-yellow-800 font-semibold rounded-lg text-[10px] hover:bg-yellow-200">
+                      📢 Notice
+                    </button>
                     <button onClick={() => startResolve(match)}
                       className="flex-1 py-1.5 bg-[#132040] text-[#f5c518] font-bold rounded-lg text-[10px] hover:opacity-90">
                       Resolve Match
@@ -1721,6 +1767,25 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                       <button onClick={() => handleSaveRoom(match._id)}
                         className="flex-1 py-1 bg-green-500 text-white font-bold rounded text-[10px]">
                         Save
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {editingNoticeId === match._id && (
+                  <div className="bg-white border border-gray-100 rounded-lg p-3 space-y-2 mt-2">
+                    <p className="text-[10px] font-bold text-gray-600">📢 Edit Announcement Notice</p>
+                    <input type="text" placeholder="Notice text (e.g. Delayed by 15 mins)" value={matchNoticeInput}
+                      onChange={e => setMatchNoticeInput(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none text-gray-900" />
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditingNoticeId(null)}
+                        className="flex-1 py-1 border border-red-200 text-red-500 rounded text-[10px]">
+                        Cancel
+                      </button>
+                      <button onClick={() => handleSaveNotice(match._id)}
+                        className="flex-1 py-1 bg-green-500 text-white font-bold rounded text-[10px]">
+                        Save Notice
                       </button>
                     </div>
                   </div>
@@ -1918,6 +1983,13 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                     <label className="text-[10px] text-gray-500 font-bold block mb-1">Rules (one per line)</label>
                     <textarea rows={3} value={schedRules} onChange={e => setSchedRules(e.target.value)}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518] resize-none" placeholder="No emulator allowed..." />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-gray-500 font-bold block mb-1">Announcement Notice (Optional)</label>
+                    <input type="text" value={schedNotice} onChange={e => setSchedNotice(e.target.value)}
+                      placeholder="e.g. Delayed by 10 mins or Map changes"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]" />
                   </div>
 
                   <button type="submit"

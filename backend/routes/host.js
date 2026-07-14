@@ -167,4 +167,24 @@ router.post('/match/:id/resolve', auth, verifyHost, async (req, res) => {
     }
 });
 
+// @route   POST api/host/match/:id/notice
+// @desc    Update tournament announcement notice
+// @access  Private (Host/Admin only)
+router.post('/match/:id/notice', auth, verifyHost, async (req, res) => {
+    const { notice } = req.body;
+
+    try {
+        const match = await Tournament.findById(req.params.id);
+        if (!match) return res.status(404).json({ msg: 'Match not found' });
+
+        match.notice = notice || '';
+        await match.save();
+
+        res.json({ success: true, msg: 'Match announcement notice updated successfully', match });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 module.exports = router;

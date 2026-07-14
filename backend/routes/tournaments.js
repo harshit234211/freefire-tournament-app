@@ -50,6 +50,7 @@ router.get('/', async (req, res) => {
                         map: sched.map,
                         matchType: sched.matchType,
                         rules: sched.rules,
+                        notice: sched.notice,
                         prizeDistribution: sched.prizeDistribution,
                         host: adminUser._id,
                         status: 'upcoming'

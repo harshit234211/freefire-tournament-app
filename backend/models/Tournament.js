@@ -39,6 +39,7 @@ const TournamentSchema = new mongoose.Schema({
         prize: Number
     }],
     rules: [{ type: String }],
+    notice: { type: String, default: '' },
     settings: {
         skills: { type: Boolean, default: true },
         attributes: { type: Boolean, default: true },

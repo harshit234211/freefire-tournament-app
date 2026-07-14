@@ -52,6 +52,10 @@ const ScheduleSchema = new mongoose.Schema({
         rank: Number,
         prize: Number
     }],
+    notice: {
+        type: String,
+        default: ''
+    },
     enabled: {
         type: Boolean,
         default: true

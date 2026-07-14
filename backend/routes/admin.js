@@ -367,7 +367,7 @@ router.get('/schedules', auth, verifyAdmin, async (req, res) => {
 // @desc    Create a new daily schedule template
 // @access  Private (Admin only)
 router.post('/schedules', auth, verifyAdmin, async (req, res) => {
-    const { time, category, title, entryFee, prizePool, perKill, totalSlots, teamType, mode, map, matchType, rules, prizeDistribution } = req.body;
+    const { time, category, title, entryFee, prizePool, perKill, totalSlots, teamType, mode, map, matchType, rules, prizeDistribution, notice } = req.body;
 
     if (!time || !category || !title || !entryFee || !prizePool) {
         return res.status(400).json({ msg: 'Please fill all required fields' });
@@ -385,7 +385,8 @@ router.post('/schedules', auth, verifyAdmin, async (req, res) => {
             map: map || 'Bermuda',
             matchType: matchType || 'Paid',
             rules: Array.isArray(rules) ? rules : (rules ? rules.split('\n').filter(r => r.trim()) : []),
-            prizeDistribution: Array.isArray(prizeDistribution) ? prizeDistribution : []
+            prizeDistribution: Array.isArray(prizeDistribution) ? prizeDistribution : [],
+            notice: notice || ''
         });
 
         await newSched.save();
