@@ -500,17 +500,13 @@ export default function Home() {
       p.user === user.id || p.user?._id === user.id);
     const isFull = selectedMatch.joinedPlayers?.length >= selectedMatch.totalSlots;
     const spotsLeft = selectedMatch.totalSlots - (selectedMatch.joinedPlayers?.length || 0);
-    const isRoomReleased = (() => {
-      try {
-        const matchTime = new Date(`${selectedMatch.date} ${selectedMatch.time}`);
-        const now = new Date();
-        const diffMs = matchTime.getTime() - now.getTime();
-        const diffMin = diffMs / 60000;
-        return diffMin <= 10 || user.role === 'admin' || user.role === 'host';
-      } catch {
-        return user.role === 'admin' || user.role === 'host';
-      }
-    })();
+    
+    let isRoomReleased = user.role === 'admin' || user.role === 'host';
+    try {
+      const matchTime = new Date(`${selectedMatch.date} ${selectedMatch.time}`);
+      const diffMin = (matchTime.getTime() - new Date().getTime()) / 60000;
+      if (diffMin <= 10) isRoomReleased = true;
+    } catch (e) {}
 
     return (
       <div className="min-h-screen bg-white pb-24">
@@ -542,7 +538,7 @@ export default function Home() {
                   <span>{isRoomReleased && selectedMatch.roomId ? selectedMatch.roomId : 'Coming Soon'}</span>
                   {isRoomReleased && selectedMatch.roomId && (
                     <button onClick={() => navigator.clipboard.writeText(selectedMatch.roomId)}>
-                      <RefreshCw className="w-4 h-4 text-gray-500" /> {/* Using RefreshCw as a placeholder for copy if needed, or better, just use a generic copy icon or text */}
+                      <RefreshCw className="w-4 h-4 text-gray-500" />
                     </button>
                   )}
                 </div>
@@ -623,6 +619,7 @@ export default function Home() {
                 </ul>
               </div>
             </div>
+          )}
 
           {/* Match Results (if completed) */}
           {selectedMatch.status === 'completed' && (
