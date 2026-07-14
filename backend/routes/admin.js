@@ -188,7 +188,7 @@ router.post('/withdrawals/:id/resolve', auth, verifyAdmin, async (req, res) => {
 router.post('/tournaments/create', auth, verifyAdmin, async (req, res) => {
     const { title, category, date, time, entryFee, prizePool, perKill, totalSlots, hostId, settings } = req.body;
 
-    if (!title || !category || !date || !time || !entryFee || !prizePool || !totalSlots || !hostId) {
+    if (!title || !category || !date || !time || entryFee === undefined || prizePool === undefined || !totalSlots || !hostId) {
         return res.status(400).json({ msg: 'Please enter all required fields' });
     }
 

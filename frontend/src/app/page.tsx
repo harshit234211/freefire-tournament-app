@@ -336,8 +336,14 @@ export default function Home() {
         setShowCreateMatch(false);
         setNewMatch({ title: '', category: 'BR Survival', date: '', time: '', entryFee: '', prizePool: '', perKill: '0', totalSlots: '20', teamType: 'Solo', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: '', prizeDistribution: '1st:55,2nd:40,3rd:35,4th:30,5th:30' });
         loadTournaments();
+        alert('Match created successfully!');
+      } else {
+        const errorData = await res.json();
+        alert(`Error: ${errorData.msg || 'Failed to create match'}`);
       }
-    } catch {}
+    } catch (e) {
+      alert('Network error while creating match');
+    }
   };
 
   // ─── Wallet ───────────────────────────────────────────────────────────────
