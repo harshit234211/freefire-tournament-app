@@ -84,6 +84,7 @@ export default function Home() {
   const [phoneInput, setPhoneInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
+  const [referCodeInput, setReferCodeInput] = useState('');
 
   // Navigation
   const [activeNav, setActiveNav] = useState<'home' | 'earn' | 'leaderboard' | 'menu'>('home');
@@ -149,7 +150,10 @@ export default function Home() {
     try {
       const endpoint = isRegister ? 'register' : 'login';
       const body: any = { phone: phoneInput, password: passwordInput };
-      if (isRegister) body.username = usernameInput;
+      if (isRegister) {
+        body.username = usernameInput;
+        body.referCode = referCodeInput;
+      }
       const res = await fetch(`${API_URL}/auth/${endpoint}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -427,6 +431,11 @@ export default function Home() {
               <input type="password" placeholder="Password" value={passwordInput}
                 onChange={e => setPasswordInput(e.target.value)}
                 className="w-full bg-[#0a1628] border border-[#1e3a6e] rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-[#f5c518]" required />
+              {isRegister && (
+                <input type="text" placeholder="Referral Code (Optional)" value={referCodeInput}
+                  onChange={e => setReferCodeInput(e.target.value)}
+                  className="w-full bg-[#0a1628] border border-[#1e3a6e] rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-[#f5c518]" />
+              )}
               {authError && <p className="text-red-400 text-sm text-center">{authError}</p>}
               <button type="submit"
                 className="w-full bg-[#f5c518] text-black font-black py-3.5 rounded-xl text-sm tracking-widest hover:bg-yellow-400 transition">
@@ -1395,6 +1404,37 @@ export default function Home() {
                 UPDATE PROFILE
               </button>
             </div>
+          </div>
+
+          {/* Refer & Earn Card */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📢</span>
+              <h3 className="font-bold text-sm text-[#132040]">Refer & Earn Coins</h3>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Invite your friends to FragArena! When they register with your Referral Code, **both of you get 10 coins bonus** instantly.
+            </p>
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex justify-between items-center">
+              <div>
+                <p className="text-[9px] text-gray-400 font-bold uppercase">Your Referral Code</p>
+                <p className="text-[#132040] font-black text-sm select-all">{user.username}</p>
+              </div>
+              <button onClick={() => {
+                navigator.clipboard.writeText(user.username);
+                alert('Referral code copied to clipboard!');
+              }}
+                className="bg-blue-50 text-blue-600 font-bold text-xs px-3 py-1.5 rounded-lg active:scale-95 transition">
+                Copy
+              </button>
+            </div>
+            <button onClick={() => {
+              const inviteText = encodeURIComponent(`Hey! Play Free Fire matches on FragArena & earn real cash! 🎮🏆\n\nRegister using my Referral Code: ${user.username} to get 10 Welcome Bonus Coins instantly!\n\nDownload/Join App here: ${window.location.origin}`);
+              window.open(`https://api.whatsapp.com/send?text=${inviteText}`, '_blank');
+            }}
+              className="w-full bg-[#132040] text-[#f5c518] font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition">
+              📢 Share Code on WhatsApp
+            </button>
           </div>
 
           {/* Host / Admin Panel */}

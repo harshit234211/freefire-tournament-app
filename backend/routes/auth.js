@@ -9,7 +9,7 @@ const User = require('../models/User');
 // @desc    Register a player
 // @access  Public
 router.post('/register', async (req, res) => {
-    const { username, phone, password } = req.body;
+    const { username, phone, password, referCode } = req.body;
 
     if (!username || !phone || !password) {
         return res.status(400).json({ msg: 'Please enter all fields' });
@@ -23,11 +23,53 @@ router.post('/register', async (req, res) => {
 
         user = new User({ username, phone, password });
 
+        // Default Sign-up Welcome Bonus: 10 coins
+        user.coins = 10;
+
         // Hash password
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
 
         await user.save();
+
+        const Transaction = require('../models/Transaction');
+
+        // Handle Referral code bonus if valid
+        let referralApplied = false;
+        let referrerUser = null;
+        if (referCode && referCode.trim()) {
+            referrerUser = await User.findOne({
+                username: { $regex: new RegExp("^" + referCode.trim() + "$", "i") }
+            });
+            if (referrerUser && referrerUser.id !== user.id) {
+                // Award 10 coins referral bonus to referrer
+                referrerUser.coins = (referrerUser.coins || 0) + 10;
+                await referrerUser.save();
+
+                // Log referrer transaction
+                const refTx = new Transaction({
+                    user: referrerUser._id,
+                    type: 'deposit',
+                    amount: 10,
+                    detail: `Referral signup bonus from ${user.username}`,
+                    status: 'success'
+                });
+                await refTx.save();
+                referralApplied = true;
+            }
+        }
+
+        // Log welcome bonus transaction for new user
+        const welcomeTx = new Transaction({
+            user: user._id,
+            type: 'deposit',
+            amount: 10,
+            detail: referralApplied && referrerUser 
+                ? `Sign-up Welcome Bonus (Referred by ${referrerUser.username})` 
+                : 'Sign-up Welcome Bonus',
+            status: 'success'
+        });
+        await welcomeTx.save();
 
         const payload = {
             user: {
