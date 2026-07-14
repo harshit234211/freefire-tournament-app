@@ -277,4 +277,75 @@ router.get('/earnings', auth, verifyAdmin, async (req, res) => {
     }
 });
 
+// @route   GET api/admin/deposits
+// @desc    Get all pending manual deposit requests
+// @access  Private (Admin only)
+router.get('/deposits', auth, verifyAdmin, async (req, res) => {
+    try {
+        const deposits = await Transaction.find({ type: 'deposit', status: 'pending' })
+            .populate('user', 'username phone')
+            .sort({ date: 1 });
+        res.json(deposits);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// @route   POST api/admin/deposits/:id/resolve
+// @desc    Approve or Reject manual deposit request
+// @access  Private (Admin only)
+router.post('/deposits/:id/resolve', auth, verifyAdmin, async (req, res) => {
+    const { action } = req.body; // 'approve' or 'reject'
+
+    try {
+        const transaction = await Transaction.findById(req.params.id);
+        if (!transaction || transaction.type !== 'deposit' || transaction.status !== 'pending') {
+            return res.status(404).json({ msg: 'Pending deposit request not found' });
+        }
+
+        const user = await User.findById(transaction.user);
+        if (!user) return res.status(404).json({ msg: 'User profile not found' });
+
+        if (action === 'approve') {
+            transaction.status = 'success';
+            transaction.detail = `Manual deposit approved by Admin. UTR: ${transaction.utr}`;
+            await transaction.save();
+
+            // Credit coins to user wallet
+            user.coins += transaction.amount;
+            await user.save();
+
+            // Notify via Telegram
+            await sendTelegramAlert(
+                `✅ <b>Manual Deposit Request Approved</b>\n\n` +
+                `👤 Player: <b>${user.username}</b>\n` +
+                `💰 Amount: <b>₹${transaction.amount}</b> credited as coins\n` +
+                `🔢 UTR/TxID: <code>${transaction.utr}</code>\n` +
+                `📊 Status: SUCCESSFUL`
+            );
+        } else if (action === 'reject') {
+            transaction.status = 'failed';
+            transaction.detail = `Manual deposit request rejected by Admin. UTR: ${transaction.utr}`;
+            await transaction.save();
+
+            // Notify via Telegram
+            await sendTelegramAlert(
+                `❌ <b>Manual Deposit Request Rejected</b>\n\n` +
+                `👤 Player: <b>${user.username}</b>\n` +
+                `💰 Amount: <b>₹${transaction.amount}</b>\n` +
+                `🔢 UTR/TxID: <code>${transaction.utr}</code>\n` +
+                `📊 Status: REJECTED`
+            );
+        } else {
+            return res.status(400).json({ msg: 'Invalid action parameter' });
+        }
+
+        res.json({ success: true, transaction });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 module.exports = router;

@@ -151,4 +151,53 @@ router.post('/withdraw/request', auth, async (req, res) => {
     }
 });
 
+// @route   POST api/wallet/deposit/manual
+// @desc    Submit a manual deposit request with UTR
+// @access  Private
+router.post('/deposit/manual', auth, async (req, res) => {
+    const { amount, utr } = req.body;
+    const amt = parseFloat(amount);
+
+    if (!amt || amt <= 0) {
+        return res.status(400).json({ msg: 'Please enter a valid deposit amount' });
+    }
+    if (!utr || utr.trim().length < 6) {
+        return res.status(400).json({ msg: 'Please enter a valid Transaction ID / UTR' });
+    }
+
+    try {
+        const existingTx = await Transaction.findOne({ utr: utr.trim() });
+        if (existingTx) {
+            return res.status(400).json({ msg: 'This Transaction ID / UTR has already been submitted' });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ msg: 'User profile not found' });
+
+        const transaction = new Transaction({
+            user: user._id,
+            type: 'deposit',
+            amount: amt,
+            utr: utr.trim(),
+            detail: `Manual Deposit via UPI (UTR: ${utr})`,
+            status: 'pending'
+        });
+        await transaction.save();
+
+        await sendTelegramAlert(
+            `💳 <b>New Manual Deposit Request</b>\n\n` +
+            `👤 Player: <b>${user.username}</b>\n` +
+            `📞 Phone: <code>${user.phone}</code>\n` +
+            `💰 Amount: <b>₹${amt}</b>\n` +
+            `🔢 UTR/TxID: <code>${utr}</code>\n` +
+            `📊 Status: PENDING ADMIN APPROVAL`
+        );
+
+        res.json({ success: true, transaction });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 module.exports = router;

@@ -33,6 +33,10 @@ const TransactionSchema = new mongoose.Schema({
         type: String,
         default: '' // For withdrawal processing
     },
+    utr: {
+        type: String,
+        default: '' // For manual deposit tracking
+    },
     date: {
         type: Date,
         default: Date.now

@@ -88,6 +88,7 @@ export default function Home() {
   const [withdrawUpi, setWithdrawUpi] = useState('');
   const [showDepositQR, setShowDepositQR] = useState(false);
   const [walletMsg, setWalletMsg] = useState('');
+  const [depositUtr, setDepositUtr] = useState('');
 
   // Profile
   const [showProfile, setShowProfile] = useState(false);
@@ -247,20 +248,26 @@ export default function Home() {
   };
 
   const handleVerifyDeposit = async () => {
+    if (!depositUtr || depositUtr.trim().length < 6) {
+      setWalletMsg('Please enter a valid Transaction ID / UTR');
+      return;
+    }
     try {
-      const res = await fetch(`${API_URL}/wallet/deposit/verify`, {
+      const res = await fetch(`${API_URL}/wallet/deposit/manual`, {
         method: 'POST', headers: getHeaders(),
-        body: JSON.stringify({ amount: parseInt(depositAmt), orderId: 'UPI_' + Date.now() })
+        body: JSON.stringify({ amount: parseInt(depositAmt), utr: depositUtr })
       });
       const data = await res.json();
       if (res.ok) {
-        setWalletMsg('✅ Deposit verified!');
+        setWalletMsg('✅ Deposit Request Submitted! Wait for Admin Verification.');
         setShowDepositQR(false);
-        const meRes = await fetch(`${API_URL}/auth/me`, { headers: getHeaders() });
-        const me = await meRes.json();
-        if (me._id) setUser(me);
-      } else { setWalletMsg(data.msg || 'Verify failed'); }
-    } catch { setWalletMsg('Connection error'); }
+        setDepositUtr('');
+      } else {
+        setWalletMsg(data.msg || 'Submit failed');
+      }
+    } catch {
+      setWalletMsg('Connection error');
+    }
     setTimeout(() => setWalletMsg(''), 3000);
   };
 
@@ -943,12 +950,15 @@ export default function Home() {
                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=7017022966@ibl%26pn=FragArena%26am=${depositAmt}%26cu=INR`}
                       alt="UPI QR" className="w-full h-full object-contain" />
                   </div>
-                  <p className="text-xs text-gray-500 mb-5">Scan with GPay, PhonePe, Paytm</p>
+                  <p className="text-xs text-gray-500 mb-4">Scan with GPay, PhonePe, Paytm</p>
+                  <input type="text" placeholder="Enter UTR / Transaction ID" value={depositUtr}
+                    onChange={e => setDepositUtr(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f5c518] mb-4 text-center text-gray-900 font-semibold" />
                   <div className="flex gap-3">
                     <button onClick={() => setShowDepositQR(false)}
                       className="flex-1 py-3 border border-red-200 text-red-500 font-bold rounded-xl text-sm">Cancel</button>
                     <button onClick={handleVerifyDeposit}
-                      className="flex-1 py-3 bg-[#132040] text-[#f5c518] font-bold rounded-xl text-sm">I Paid</button>
+                      className="flex-1 py-3 bg-[#132040] text-[#f5c518] font-bold rounded-xl text-sm">Submit UTR</button>
                   </div>
                 </motion.div>
               </motion.div>
@@ -1129,6 +1139,66 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
   const [resolvingSubmitLoading, setResolvingSubmitLoading] = useState(false);
   const [msg, setMsg] = useState('');
 
+  const [pendingDeposits, setPendingDeposits] = useState([]);
+  const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+
+  const fetchPendingTransactions = useCallback(async () => {
+    if (user.role !== 'admin') return;
+    setLoadingTransactions(true);
+    try {
+      const depRes = await fetch(`${API_URL}/admin/deposits`, { headers: getHeaders() });
+      if (depRes.ok) setPendingDeposits(await depRes.json());
+
+      const witRes = await fetch(`${API_URL}/admin/withdrawals`, { headers: getHeaders() });
+      if (witRes.ok) setPendingWithdrawals(await witRes.json());
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  }, [API_URL, getHeaders, user.role]);
+
+  const handleResolveDeposit = async (id, action) => {
+    try {
+      const res = await fetch(`${API_URL}/admin/deposits/${id}/resolve`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ action })
+      });
+      if (res.ok) {
+        setMsg(`Deposit request ${action}ed successfully!`);
+        fetchPendingTransactions();
+      } else {
+        const data = await res.json();
+        setMsg(data.msg || 'Action failed');
+      }
+    } catch {
+      setMsg('Connection error');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleResolveWithdrawal = async (id, action) => {
+    try {
+      const res = await fetch(`${API_URL}/admin/withdrawals/${id}/resolve`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ action })
+      });
+      if (res.ok) {
+        setMsg(`Withdrawal request ${action}ed successfully!`);
+        fetchPendingTransactions();
+      } else {
+        const data = await res.json();
+        setMsg(data.msg || 'Action failed');
+      }
+    } catch {
+      setMsg('Connection error');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
   const fetchHostedMatches = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/host/matches`, { headers: getHeaders() });
@@ -1145,7 +1215,8 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
 
   useEffect(() => {
     fetchHostedMatches();
-  }, [fetchHostedMatches]);
+    fetchPendingTransactions();
+  }, [fetchHostedMatches, fetchPendingTransactions]);
 
   const handleSaveRoom = async (matchId) => {
     try {
@@ -1299,6 +1370,80 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
           </div>
         )}
       </div>
+
+      {/* Pending Manual Deposits (Admin Only) */}
+      {user.role === 'admin' && (
+        <div className="border-t pt-4 border-gray-100">
+          <p className="text-xs text-gray-500 font-bold mb-3">Pending Deposits ({pendingDeposits.length})</p>
+          {pendingDeposits.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-2 bg-gray-50 rounded-lg">No pending deposits.</p>
+          ) : (
+            <div className="space-y-3">
+              {pendingDeposits.map((dep) => (
+                <div key={dep._id} className="border border-yellow-200 bg-yellow-50/30 rounded-xl p-3 space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-bold text-gray-800">{dep.user?.username || 'Player'}</span>
+                    <span className="text-gray-500">{dep.user?.phone}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <div>
+                      <p className="text-gray-600 font-semibold">Amount: ₹{dep.amount}</p>
+                      <p className="text-[10px] text-gray-400 font-mono">UTR: {dep.utr}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleResolveDeposit(dep._id, 'reject')}
+                        className="px-3 py-1.5 bg-red-100 text-red-700 font-bold rounded-lg text-[10px]">
+                        Reject
+                      </button>
+                      <button onClick={() => handleResolveDeposit(dep._id, 'approve')}
+                        className="px-3 py-1.5 bg-green-500 text-white font-bold rounded-lg text-[10px]">
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Pending Withdrawals (Admin Only) */}
+      {user.role === 'admin' && (
+        <div className="border-t pt-4 border-gray-100">
+          <p className="text-xs text-gray-500 font-bold mb-3">Pending Withdrawals ({pendingWithdrawals.length})</p>
+          {pendingWithdrawals.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-2 bg-gray-50 rounded-lg">No pending withdrawals.</p>
+          ) : (
+            <div className="space-y-3">
+              {pendingWithdrawals.map((wit) => (
+                <div key={wit._id} className="border border-orange-200 bg-orange-50/30 rounded-xl p-3 space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-bold text-gray-800">{wit.user?.username || 'Player'}</span>
+                    <span className="text-gray-500">{wit.user?.phone}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <div>
+                      <p className="text-gray-600 font-semibold">Amount: ₹{wit.amount}</p>
+                      <p className="text-[10px] text-gray-400 font-mono">UPI: {wit.upiId}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleResolveWithdrawal(wit._id, 'reject')}
+                        className="px-3 py-1.5 bg-red-100 text-red-700 font-bold rounded-lg text-[10px]">
+                        Reject
+                      </button>
+                      <button onClick={() => handleResolveWithdrawal(wit._id, 'approve')}
+                        className="px-3 py-1.5 bg-green-500 text-white font-bold rounded-lg text-[10px]">
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {resolvingMatch && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
