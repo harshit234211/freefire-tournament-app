@@ -17,14 +17,17 @@ const API_URL = 'https://freefire-tournament-app.onrender.com/api';
 const GAME_CATEGORIES = [
   { id: 'BR Survival',      label: 'BR SURVIVAL',         color: '#e74c3c', bg: 'from-red-900 to-orange-800',   icon: '🎯' },
   { id: 'BR Per Kill',      label: 'BR PER KILL',          color: '#f39c12', bg: 'from-yellow-900 to-orange-700', icon: '💀' },
-  { id: 'Clash Squad 1v1',  label: 'CLASH SQUAD 1V1',      color: '#8e44ad', bg: 'from-purple-900 to-blue-800',  icon: '⚔️' },
   { id: 'Lone Wolf 1v1',    label: 'LONE WOLF 1V1',        color: '#16a085', bg: 'from-teal-900 to-cyan-800',    icon: '🐺' },
-  { id: 'Clash Squad 4v4',  label: 'CLASH SQUAD 4V4',      color: '#2980b9', bg: 'from-blue-900 to-indigo-800',  icon: '🛡️' },
   { id: 'Lone Wolf 2v2',    label: 'LONE WOLF 2V2',        color: '#27ae60', bg: 'from-green-900 to-teal-800',   icon: '🔥' },
+  { id: 'Clash Squad 1v1',  label: 'CLASH SQUAD 1V1',      color: '#8e44ad', bg: 'from-purple-900 to-blue-800',  icon: '⚔️' },
+  { id: 'Clash Squad 2v2',  label: 'CLASH SQUAD 2V2',      color: '#9b59b6', bg: 'from-fuchsia-900 to-purple-800', icon: '⚔️' },
+  { id: 'Clash Squad 4v4',  label: 'CLASH SQUAD 4V4',      color: '#2980b9', bg: 'from-blue-900 to-indigo-800',  icon: '🛡️' },
   { id: 'CS Headshot',      label: 'CS HEADSHOT',          color: '#c0392b', bg: 'from-red-950 to-rose-800',     icon: '🎯' },
-  { id: 'Only UMP',         label: 'ONLY UMP',             color: '#d35400', bg: 'from-orange-900 to-amber-800', icon: '🔫' },
-  { id: 'CS Challenges',    label: 'CS CHALLENGES',        color: '#7f8c8d', bg: 'from-slate-800 to-gray-700',   icon: '🏆' },
+  { id: 'UMP Only',         label: 'UMP ONLY',             color: '#d35400', bg: 'from-orange-900 to-amber-800', icon: '🔫' },
+  { id: 'MP40 Only',        label: 'MP40 ONLY',            color: '#e67e22', bg: 'from-orange-800 to-yellow-700', icon: '🔫' },
+  { id: 'Sniper Only',      label: 'SNIPER ONLY',          color: '#34495e', bg: 'from-slate-800 to-gray-800',   icon: '🎯' },
   { id: 'Free Tournament',  label: 'FREE TOURNAMENT',      color: '#1abc9c', bg: 'from-emerald-900 to-green-700',icon: '🎁' },
+  { id: 'Other',            label: 'OTHER MATCHES',        color: '#7f8c8d', bg: 'from-gray-700 to-gray-600',    icon: '📦' },
 ];
 
 function getTimeLeft(date: string, time: string) {
@@ -174,10 +177,21 @@ export default function Home() {
   // ─── Load Data ────────────────────────────────────────────────────────────
   const loadTournaments = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/tournaments`);
+      console.log('Fetching tournaments from API...');
+      const res = await fetch(`${API_URL}/tournaments?t=${new Date().getTime()}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      });
       const data = await res.json();
+      console.log(`Fetched ${Array.isArray(data) ? data.length : 0} tournaments`);
       setTournaments(Array.isArray(data) ? data : []);
-    } catch {}
+    } catch (e) {
+      console.error('Error fetching tournaments:', e);
+    }
   }, []);
 
   const loadLeaderboard = useCallback(async () => {
@@ -422,7 +436,12 @@ export default function Home() {
 
   // ─── Filtered tournaments ─────────────────────────────────────────────────
   const categoryTournaments = selectedCategory
-    ? tournaments.filter(t => t.category === selectedCategory)
+    ? tournaments.filter(t => {
+        if (selectedCategory === 'Other') {
+          return !GAME_CATEGORIES.some(c => c.id === t.category && c.id !== 'Other');
+        }
+        return t.category === selectedCategory;
+      })
     : [];
 
   const filteredByTab = categoryTournaments.filter(t => {
@@ -1194,7 +1213,12 @@ export default function Home() {
             <h2 className="font-bold text-sm text-[#132040] mb-3">Esports Games</h2>
             <div className="grid grid-cols-2 gap-3">
                {GAME_CATEGORIES.map(cat => {
-                const count = tournaments.filter(t => t.category === cat.id && t.status === 'upcoming').length;
+                let count = 0;
+                if (cat.id === 'Other') {
+                  count = tournaments.filter(t => t.status === 'upcoming' && !GAME_CATEGORIES.some(c => c.id === t.category && c.id !== 'Other')).length;
+                } else {
+                  count = tournaments.filter(t => t.category === cat.id && t.status === 'upcoming').length;
+                }
                 return (
                   <motion.div key={cat.id} whileTap={{ scale: 0.97 }}
                     onClick={() => { setSelectedCategory(cat.id); setContestTab('upcoming'); }}

@@ -23,47 +23,14 @@ const getTodayIST = () => {
 // @access  Public
 router.get('/', async (req, res) => {
     try {
-        const todayDate = getTodayIST();
-        const activeSchedules = await Schedule.find({ enabled: true });
-        const adminUser = await User.findOne({ role: 'admin' });
-
-        if (adminUser) {
-            for (const sched of activeSchedules) {
-                const exists = await Tournament.findOne({
-                    date: todayDate,
-                    time: sched.time,
-                    category: sched.category
-                });
-
-                if (!exists) {
-                    const newTourney = new Tournament({
-                        title: sched.title,
-                        category: sched.category,
-                        date: todayDate,
-                        time: sched.time,
-                        entryFee: sched.entryFee,
-                        prizePool: sched.prizePool,
-                        perKill: sched.perKill,
-                        totalSlots: sched.totalSlots,
-                        teamType: sched.teamType,
-                        mode: sched.mode,
-                        map: sched.map,
-                        matchType: sched.matchType,
-                        rules: sched.rules,
-                        notice: sched.notice,
-                        prizeDistribution: sched.prizeDistribution,
-                        host: adminUser._id,
-                        status: 'upcoming'
-                    });
-                    await newTourney.save();
-                }
-            }
-        }
-
-        const tournaments = await Tournament.find()
+        const tournamentsList = await Tournament.find()
             .populate('host', 'username')
-            .sort({ dateCreated: -1 });
-        res.json(tournaments);
+            .sort({ date: 1, time: 1 });
+            
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.json(tournamentsList);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
