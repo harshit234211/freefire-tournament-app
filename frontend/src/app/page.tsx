@@ -1517,6 +1517,8 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
   const [playerStandings, setPlayerStandings] = useState([]);
   const [resolvingSubmitLoading, setResolvingSubmitLoading] = useState(false);
   const [msg, setMsg] = useState('');
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   const [pendingDeposits, setPendingDeposits] = useState([]);
   const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
@@ -1617,6 +1619,19 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
       console.error(e);
     } finally {
       setLoadingSchedules(false);
+    }
+  }, [API_URL, getHeaders, user.role]);
+
+  const fetchStats = useCallback(async () => {
+    if (user.role !== 'admin') return;
+    setLoadingStats(true);
+    try {
+      const res = await fetch(`${API_URL}/admin/stats`, { headers: getHeaders() });
+      if (res.ok) setStats(await res.json());
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingStats(false);
     }
   }, [API_URL, getHeaders, user.role]);
 
@@ -1725,7 +1740,8 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
     fetchHostedMatches();
     fetchPendingTransactions();
     fetchSchedules();
-  }, [fetchHostedMatches, fetchPendingTransactions, fetchSchedules]);
+    fetchStats();
+  }, [fetchHostedMatches, fetchPendingTransactions, fetchSchedules, fetchStats]);
 
   const handleSaveRoom = async (matchId) => {
     try {
@@ -1824,6 +1840,39 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
           </button>
         )}
       </div>
+
+      {user.role === 'admin' && (
+        <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50 space-y-3">
+          <p className="text-xs text-gray-500 font-bold">📊 Platform Analytics</p>
+          {loadingStats ? (
+            <p className="text-xs text-gray-400 text-center py-2">Loading stats...</p>
+          ) : stats ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm text-left">
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Total Users</p>
+                <p className="font-black text-base text-[#132040]">{stats.totalUsers}</p>
+              </div>
+              <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm text-left">
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Success Deposits</p>
+                <p className="font-black text-base text-green-600">₹{stats.totalDeposits}</p>
+                {stats.totalPendingDeposits > 0 && (
+                  <p className="text-[9px] text-yellow-600 font-bold">Pending: ₹{stats.totalPendingDeposits}</p>
+                )}
+              </div>
+              <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm text-left">
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Success Withdraws</p>
+                <p className="font-black text-base text-blue-600">₹{stats.totalWithdrawals}</p>
+              </div>
+              <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm text-left">
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Pending Withdraws</p>
+                <p className="font-black text-base text-orange-600">₹{stats.totalPendingWithdrawals}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-red-500 text-center py-2">Failed to load statistics</p>
+          )}
+        </div>
+      )}
 
       {msg && (
         <div className="bg-blue-50 text-blue-700 text-xs font-semibold p-2.5 rounded-lg text-center">

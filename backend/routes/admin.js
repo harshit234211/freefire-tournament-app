@@ -20,6 +20,50 @@ const verifyAdmin = async (req, res, next) => {
     }
 };
 
+// @route   GET api/admin/stats
+// @desc    Get dashboard stats (Total users, deposits, withdrawals)
+// @access  Private (Admin only)
+router.get('/stats', auth, verifyAdmin, async (req, res) => {
+    try {
+        const totalUsers = await User.countDocuments();
+        
+        const deposits = await Transaction.aggregate([
+            { $match: { type: 'deposit', status: 'success' } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalDeposits = deposits[0] ? deposits[0].total : 0;
+
+        const pendingDeposits = await Transaction.aggregate([
+            { $match: { type: 'deposit', status: 'pending' } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalPendingDeposits = pendingDeposits[0] ? pendingDeposits[0].total : 0;
+
+        const withdrawals = await Transaction.aggregate([
+            { $match: { type: 'withdrawal', status: 'success' } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalWithdrawals = withdrawals[0] ? withdrawals[0].total : 0;
+
+        const pendingWithdrawals = await Transaction.aggregate([
+            { $match: { type: 'withdrawal', status: 'pending' } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalPendingWithdrawals = pendingWithdrawals[0] ? pendingWithdrawals[0].total : 0;
+
+        res.json({
+            totalUsers,
+            totalDeposits,
+            totalPendingDeposits,
+            totalWithdrawals,
+            totalPendingWithdrawals
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 // @route   GET api/admin/users
 // @desc    Get all users list
 // @access  Private (Admin only)
