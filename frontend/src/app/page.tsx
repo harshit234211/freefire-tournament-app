@@ -274,10 +274,11 @@ export default function Home() {
         return { rank: i + 1, prize: parseInt(parts[1] || '0') };
       });
       const rulesArr = newMatch.rules.split('\n').filter(r => r.trim());
-      const res = await fetch(`${API_URL}/tournaments`, {
+      const res = await fetch(`${API_URL}/admin/tournaments/create`, {
         method: 'POST', headers: getHeaders(),
         body: JSON.stringify({
           ...newMatch,
+          hostId: user.id || user._id,
           entryFee: parseInt(newMatch.entryFee),
           prizePool: parseInt(newMatch.prizePool),
           perKill: parseInt(newMatch.perKill),
