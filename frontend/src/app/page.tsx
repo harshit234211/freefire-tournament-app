@@ -15,46 +15,16 @@ const API_URL = 'https://freefire-tournament-app.onrender.com/api';
 
 // Game categories with colors
 const GAME_CATEGORIES = [
-  // Battle Royale
-  { id: 'BR Survival Solo',   label: 'BR SURVIVAL – SOLO',  color: '#e74c3c', bg: 'from-red-900 to-orange-800',   icon: '🎯' },
-  { id: 'BR Survival Duo',    label: 'BR SURVIVAL – DUO',   color: '#e67e22', bg: 'from-orange-900 to-red-800',   icon: '🎯' },
-  { id: 'BR Survival Squad',  label: 'BR SURVIVAL – SQUAD', color: '#c0392b', bg: 'from-red-950 to-orange-900',   icon: '🎯' },
-  // BR Per Kill
-  { id: 'BR Per Kill Solo',   label: 'BR PER KILL – SOLO',  color: '#f39c12', bg: 'from-yellow-900 to-orange-700', icon: '💀' },
-  { id: 'BR Per Kill Duo',    label: 'BR PER KILL – DUO',   color: '#d4a017', bg: 'from-yellow-800 to-amber-700',  icon: '💀' },
-  { id: 'BR Per Kill Squad',  label: 'BR PER KILL – SQUAD', color: '#e6b800', bg: 'from-yellow-950 to-orange-800', icon: '💀' },
-  // Lone Wolf
-  { id: 'Lone Wolf 1v1',      label: 'LONE WOLF 1V1',       color: '#16a085', bg: 'from-teal-900 to-cyan-800',    icon: '🐺' },
-  { id: 'Lone Wolf 2v2',      label: 'LONE WOLF 2V2',       color: '#1abc9c', bg: 'from-teal-800 to-green-700',   icon: '🐺' },
-  // Clash Squad
-  { id: 'Clash Squad 1v1',    label: 'CLASH SQUAD 1V1',     color: '#8e44ad', bg: 'from-purple-900 to-blue-800',  icon: '⚔️' },
-  { id: 'Clash Squad 2v2',    label: 'CLASH SQUAD 2V2',     color: '#9b59b6', bg: 'from-purple-800 to-violet-700', icon: '⚔️' },
-  { id: 'Clash Squad 4v4',    label: 'CLASH SQUAD 4V4',     color: '#2980b9', bg: 'from-blue-900 to-indigo-800',  icon: '🛡️' },
-  // Special Modes
-  { id: 'Sniper Only',        label: 'SNIPER ONLY',         color: '#2c3e50', bg: 'from-slate-900 to-gray-800',   icon: '🎯' },
-  { id: 'Sniper Body Allowed',label: 'SNIPER (BODY)',        color: '#34495e', bg: 'from-slate-800 to-gray-700',   icon: '🎯' },
-  { id: 'MP40 Only',          label: 'MP40 ONLY',           color: '#e74c3c', bg: 'from-red-900 to-rose-800',     icon: '🔫' },
-  { id: 'Only UMP',           label: 'ONLY UMP',            color: '#d35400', bg: 'from-orange-900 to-amber-800', icon: '🔫' },
-  { id: 'M1887 Only',         label: 'M1887 ONLY',          color: '#6c3483', bg: 'from-purple-950 to-fuchsia-900',icon: '🔫' },
-  { id: 'Desert Eagle Only',  label: 'DESERT EAGLE ONLY',   color: '#117a65', bg: 'from-teal-950 to-cyan-900',   icon: '🔫' },
-  { id: 'Melee Only',         label: 'MELEE ONLY',          color: '#922b21', bg: 'from-red-950 to-pink-900',     icon: '⚔️' },
-  { id: 'Grenade Only',       label: 'GRENADE ONLY',        color: '#b7950b', bg: 'from-yellow-950 to-amber-900', icon: '💣' },
-  { id: 'CS Headshot',        label: 'CS HEADSHOT ONLY',    color: '#c0392b', bg: 'from-red-950 to-rose-800',     icon: '🎯' },
-  { id: 'CS Body Allowed',    label: 'CS BODY ALLOWED',     color: '#7f8c8d', bg: 'from-slate-800 to-gray-700',   icon: '🏆' },
-  // Legacy / Free
-  { id: 'CS Challenges',      label: 'CS CHALLENGES',       color: '#707b7c', bg: 'from-slate-700 to-gray-600',   icon: '🏆' },
-  { id: 'Free Tournament',    label: 'FREE TOURNAMENT',     color: '#1abc9c', bg: 'from-emerald-900 to-green-700', icon: '🎁' },
-];
-
-const FF_MAPS = [
-  'Bermuda', 'Bermuda Remastered', 'Purgatory', 'Kalahari',
-  'Alpine', 'Nexterra', 'Solara', 'Iron Cage', 'Craftland'
-];
-
-const SPECIAL_MODES = [
-  'None', 'Sniper Only', 'Sniper Body Allowed', 'MP40 Only', 'UMP Only',
-  'M1887 Only', 'Desert Eagle Only', 'Melee Only', 'Grenade Only',
-  'Headshot Only', 'Body Shot Allowed'
+  { id: 'BR Survival',      label: 'BR SURVIVAL',         color: '#e74c3c', bg: 'from-red-900 to-orange-800',   icon: '🎯' },
+  { id: 'BR Per Kill',      label: 'BR PER KILL',          color: '#f39c12', bg: 'from-yellow-900 to-orange-700', icon: '💀' },
+  { id: 'Clash Squad 1v1',  label: 'CLASH SQUAD 1V1',      color: '#8e44ad', bg: 'from-purple-900 to-blue-800',  icon: '⚔️' },
+  { id: 'Lone Wolf 1v1',    label: 'LONE WOLF 1V1',        color: '#16a085', bg: 'from-teal-900 to-cyan-800',    icon: '🐺' },
+  { id: 'Clash Squad 4v4',  label: 'CLASH SQUAD 4V4',      color: '#2980b9', bg: 'from-blue-900 to-indigo-800',  icon: '🛡️' },
+  { id: 'Lone Wolf 2v2',    label: 'LONE WOLF 2V2',        color: '#27ae60', bg: 'from-green-900 to-teal-800',   icon: '🔥' },
+  { id: 'CS Headshot',      label: 'CS HEADSHOT',          color: '#c0392b', bg: 'from-red-950 to-rose-800',     icon: '🎯' },
+  { id: 'Only UMP',         label: 'ONLY UMP',             color: '#d35400', bg: 'from-orange-900 to-amber-800', icon: '🔫' },
+  { id: 'CS Challenges',    label: 'CS CHALLENGES',        color: '#7f8c8d', bg: 'from-slate-800 to-gray-700',   icon: '🏆' },
+  { id: 'Free Tournament',  label: 'FREE TOURNAMENT',      color: '#1abc9c', bg: 'from-emerald-900 to-green-700',icon: '🎁' },
 ];
 
 function getTimeLeft(date: string, time: string) {
@@ -71,16 +41,7 @@ function getTimeLeft(date: string, time: string) {
   } catch { return '--'; }
 }
 
-const getCategoryThumbnail = (category, mapName = '', assetsList = []) => {
-  // Check if there is a match in live database assets first
-  if (Array.isArray(assetsList)) {
-    const matchedMode = assetsList.find(a => a.type === 'mode' && a.name.toLowerCase() === (category || '').toLowerCase());
-    if (matchedMode) return matchedMode.thumbnailUrl;
-
-    const matchedMap = assetsList.find(a => a.type === 'map' && a.name.toLowerCase() === (mapName || '').toLowerCase());
-    if (matchedMap) return matchedMap.thumbnailUrl;
-  }
-
+const getCategoryThumbnail = (category) => {
   const cat = category?.toLowerCase() || '';
   if (cat.includes('headshot')) {
     return '/cs_headshot.png';
@@ -138,7 +99,6 @@ export default function Home() {
   const [myMatches, setMyMatches] = useState<any[]>([]);
   const [clans, setClans] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [assets, setAssets] = useState<any[]>([]);
 
   // Match detail state
   const [timeLeft, setTimeLeft] = useState('');
@@ -148,19 +108,18 @@ export default function Home() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
+  // Admin / Host
   const [showAdmin, setShowAdmin] = useState(false);
   const [showCreateMatch, setShowCreateMatch] = useState(false);
   const [newMatch, setNewMatch] = useState({
-    title: '', category: 'BR Survival Solo', date: '', time: '',
+    title: '', category: 'BR Survival', date: '', time: '',
     entryFee: '', prizePool: '', perKill: '0', totalSlots: '20',
     teamType: 'Solo', mode: 'Solo', map: 'Bermuda', matchType: 'Paid',
     rules: '',
-    prizeDistribution: '1st:55,2nd:40,3rd:35,4th:30,5th:30',
-    skillsOn: true,
-    attributesOn: true,
-    specialMode: 'None'
+    prizeDistribution: '1st:55,2nd:40,3rd:35,4th:30,5th:30'
   });
 
+  // Wallet
   const [showWallet, setShowWallet] = useState(false);
   const [depositAmt, setDepositAmt] = useState('');
   const [withdrawAmt, setWithdrawAmt] = useState('');
@@ -241,11 +200,6 @@ export default function Home() {
     fetch(`${API_URL}/tournaments`)
       .then(r => r.json())
       .then(d => setTournaments(Array.isArray(d) ? d : []))
-      .catch(() => {});
-    // Load assets
-    fetch(`${API_URL}/admin/assets`)
-      .then(r => r.json())
-      .then(d => setAssets(Array.isArray(d) ? d : []))
       .catch(() => {});
   }, []); // eslint-disable-line
 
@@ -330,20 +284,12 @@ export default function Home() {
           perKill: parseInt(newMatch.perKill),
           totalSlots: parseInt(newMatch.totalSlots),
           prizeDistribution: prizeDist,
-          rules: rulesArr,
-          settings: {
-            skills: newMatch.skillsOn,
-            attributes: newMatch.attributesOn,
-            weapons: newMatch.specialMode !== 'None' ? newMatch.specialMode : 'All',
-            bodyShot: (newMatch.specialMode === 'Body Shot Allowed' || newMatch.specialMode === 'Sniper Body Allowed') ? 'Allowed' : 'Headshot Only',
-            ammo: 'Normal',
-            roomType: 'Normal'
-          }
+          rules: rulesArr
         })
       });
       if (res.ok) {
         setShowCreateMatch(false);
-        setNewMatch({ title: '', category: 'BR Survival Solo', date: '', time: '', entryFee: '', prizePool: '', perKill: '0', totalSlots: '20', teamType: 'Solo', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: '', prizeDistribution: '1st:55,2nd:40,3rd:35,4th:30,5th:30', skillsOn: true, attributesOn: true, specialMode: 'None' });
+        setNewMatch({ title: '', category: 'BR Survival', date: '', time: '', entryFee: '', prizePool: '', perKill: '0', totalSlots: '20', teamType: 'Solo', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: '', prizeDistribution: '1st:55,2nd:40,3rd:35,4th:30,5th:30' });
         loadTournaments();
       }
     } catch {}
@@ -536,7 +482,7 @@ export default function Home() {
 
         {/* Banner */}
         <div className="relative h-48 w-full overflow-hidden">
-          <img src={getCategoryThumbnail(selectedMatch.category, selectedMatch.map, assets)} alt={selectedMatch.category} className="w-full h-full object-cover" />
+          <img src={getCategoryThumbnail(selectedMatch.category)} alt={selectedMatch.category} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <div className="text-center">
               <p className="text-white font-black text-2xl tracking-widest uppercase">
@@ -593,29 +539,6 @@ export default function Home() {
               Entry Fee: 🪙 {selectedMatch.entryFee}
             </span>
           </div>
-
-          {/* Skill Settings Display */}
-          {selectedMatch.settings && (
-            <div className="bg-white rounded-xl px-4 py-3 shadow-sm">
-              <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-2 font-bold">⚙️ Match Settings</p>
-              <div className="flex flex-wrap gap-2">
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${selectedMatch.settings.skills ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-600 border border-red-200'}`}>
-                  Skills: {selectedMatch.settings.skills ? '✅ ON' : '❌ OFF'}
-                </span>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${selectedMatch.settings.attributes ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-600 border border-red-200'}`}>
-                  Attributes: {selectedMatch.settings.attributes ? '✅ ON' : '❌ OFF'}
-                </span>
-                {selectedMatch.settings.weapons && selectedMatch.settings.weapons !== 'All' && (
-                  <span className="bg-purple-100 text-purple-700 border border-purple-200 rounded-full px-3 py-1 text-xs font-bold">
-                    🔫 {selectedMatch.settings.weapons}
-                  </span>
-                )}
-                <span className="bg-blue-50 text-blue-600 border border-blue-100 rounded-full px-3 py-1 text-xs font-semibold">
-                  Body Shot: {selectedMatch.settings.bodyShot || 'Allowed'}
-                </span>
-              </div>
-            </div>
-          )}
 
           {/* Schedule */}
           <div className="bg-white rounded-xl px-4 py-3 shadow-sm text-center">
@@ -1573,12 +1496,9 @@ export default function Home() {
               </div>
               <form onSubmit={handleCreateMatch} className="space-y-4">
                 <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Match Title" value={newMatch.title} onChange={e => setNewMatch({...newMatch, title: e.target.value})} required />
-                <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Match Category</label>
-                  <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.category} onChange={e => setNewMatch({...newMatch, category: e.target.value})}>
-                    {GAME_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                  </select>
-                </div>
+                <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.category} onChange={e => setNewMatch({...newMatch, category: e.target.value})}>
+                  {GAME_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                </select>
                 <div className="grid grid-cols-2 gap-3">
                   <input className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Date (YYYY-MM-DD)" value={newMatch.date} onChange={e => setNewMatch({...newMatch, date: e.target.value})} required />
                   <input className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Time (09:00 AM)" value={newMatch.time} onChange={e => setNewMatch({...newMatch, time: e.target.value})} required />
@@ -1590,55 +1510,21 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <input type="number" className="border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Total Slots" value={newMatch.totalSlots} onChange={e => setNewMatch({...newMatch, totalSlots: e.target.value})} required />
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Map</label>
-                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.map} onChange={e => setNewMatch({...newMatch, map: e.target.value})}>
-                      {FF_MAPS.map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                  </div>
+                  <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.map} onChange={e => setNewMatch({...newMatch, map: e.target.value})}>
+                    <option>Bermuda</option><option>Kalahari</option><option>Purgatory</option><option>Alpine</option>
+                  </select>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Team Type</label>
-                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.teamType} onChange={e => setNewMatch({...newMatch, teamType: e.target.value})}>
-                      <option>Solo</option><option>Duo</option><option>Squad</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Mode</label>
-                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.mode} onChange={e => setNewMatch({...newMatch, mode: e.target.value})}>
-                      <option>Solo</option><option>Duo</option><option>Squad</option><option>1v1</option><option>2v2</option><option>4v4</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Match Type</label>
-                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.matchType} onChange={e => setNewMatch({...newMatch, matchType: e.target.value})}>
-                      <option>Paid</option><option>Free</option>
-                    </select>
-                  </div>
+                  <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.teamType} onChange={e => setNewMatch({...newMatch, teamType: e.target.value})}>
+                    <option>Solo</option><option>Duo</option><option>Squad</option>
+                  </select>
+                  <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.mode} onChange={e => setNewMatch({...newMatch, mode: e.target.value})}>
+                    <option>Solo</option><option>1v1</option><option>2v2</option><option>4v4</option>
+                  </select>
+                  <select className="border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.matchType} onChange={e => setNewMatch({...newMatch, matchType: e.target.value})}>
+                    <option>Paid</option><option>Free</option>
+                  </select>
                 </div>
-
-                {/* Skill Settings */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-3">
-                  <p className="text-xs font-bold text-gray-600 uppercase">⚙️ Skill Settings</p>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={newMatch.skillsOn} onChange={e => setNewMatch({...newMatch, skillsOn: e.target.checked})} className="w-4 h-4 accent-[#132040]" />
-                      <span className="text-sm font-semibold text-gray-700">Skills ON</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={newMatch.attributesOn} onChange={e => setNewMatch({...newMatch, attributesOn: e.target.checked})} className="w-4 h-4 accent-[#132040]" />
-                      <span className="text-sm font-semibold text-gray-700">Attributes ON</span>
-                    </label>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Special Mode</label>
-                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.specialMode} onChange={e => setNewMatch({...newMatch, specialMode: e.target.value})}>
-                      {SPECIAL_MODES.map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                  </div>
-                </div>
-
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Prize Distribution</label>
                   <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={newMatch.prizeDistribution} onChange={e => setNewMatch({...newMatch, prizeDistribution: e.target.value})} />

@@ -7,7 +7,6 @@ const Transaction = require('../models/Transaction');
 const Chat = require('../models/Chat');
 
 const Schedule = require('../models/Schedule');
-const Asset = require('../models/Asset');
 
 const getTodayIST = () => {
     const d = new Date();
@@ -27,7 +26,6 @@ router.get('/', async (req, res) => {
         const todayDate = getTodayIST();
         const activeSchedules = await Schedule.find({ enabled: true });
         const adminUser = await User.findOne({ role: 'admin' });
-        const assets = await Asset.find();
 
         if (adminUser) {
             for (const sched of activeSchedules) {
@@ -38,13 +36,6 @@ router.get('/', async (req, res) => {
                 });
 
                 if (!exists) {
-                    // Try to match mode or map banner URL from assets
-                    let matchedBanner = '';
-                    const matchedModeAsset = assets.find(a => a.type === 'mode' && a.name.toLowerCase() === sched.category.toLowerCase());
-                    const matchedMapAsset = assets.find(a => a.type === 'map' && a.name.toLowerCase() === sched.map.toLowerCase());
-                    if (matchedModeAsset) matchedBanner = matchedModeAsset.thumbnailUrl;
-                    else if (matchedMapAsset) matchedBanner = matchedMapAsset.thumbnailUrl;
-
                     const newTourney = new Tournament({
                         title: sched.title,
                         category: sched.category,
@@ -61,17 +52,8 @@ router.get('/', async (req, res) => {
                         rules: sched.rules,
                         notice: sched.notice,
                         prizeDistribution: sched.prizeDistribution,
-                        bannerImage: matchedBanner || '',
                         host: adminUser._id,
-                        status: 'upcoming',
-                        settings: {
-                            skills: sched.settings?.skills !== undefined ? sched.settings.skills : true,
-                            attributes: sched.settings?.attributes !== undefined ? sched.settings.attributes : true,
-                            bodyShot: sched.settings?.bodyShot || 'Allowed',
-                            weapons: sched.settings?.weapons || 'All',
-                            ammo: sched.settings?.ammo || 'Normal',
-                            roomType: sched.settings?.roomType || 'Normal'
-                        }
+                        status: 'upcoming'
                     });
                     await newTourney.save();
                 }
