@@ -11,7 +11,7 @@ import {
   TrendingUp, Gift
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://freefire-tournament-app.onrender.com/api';
+const API_URL = 'https://freefire-tournament-app.onrender.com/api';
 
 // Game categories with colors
 const GAME_CATEGORIES = [
@@ -154,8 +154,12 @@ export default function Home() {
         }).catch(() => { localStorage.removeItem('token'); })
         .finally(() => setLoading(false));
     } else { setLoading(false); }
-    loadTournaments();
-  }, [loadTournaments]);
+    // Load tournaments once on mount
+    fetch(`${API_URL}/tournaments`)
+      .then(r => r.json())
+      .then(d => setTournaments(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, []); // eslint-disable-line
 
   // Timer for match detail
   useEffect(() => {
