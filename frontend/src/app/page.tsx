@@ -298,7 +298,11 @@ export default function Home() {
   // Compute my matches
   useEffect(() => {
     if (user && tournaments.length) {
-      setMyMatches(tournaments.filter(t => t.joinedPlayers?.some((p: any) => p.user === user.id || p.user?._id === user.id)));
+      const uid = user.id || user._id;
+      setMyMatches(tournaments.filter(t => 
+        (t.host && (t.host._id === uid || t.host === uid)) ||
+        t.joinedPlayers?.some((p: any) => p.user === uid || p.user?._id === uid)
+      ));
     }
   }, [user, tournaments]);
 
