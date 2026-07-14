@@ -58,6 +58,7 @@ export default function Home() {
   const [contestTab, setContestTab] = useState<'ongoing' | 'upcoming' | 'completed'>('upcoming');
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [showJoinings, setShowJoinings] = useState(false);
+  const [selectedMyMatchesTab, setSelectedMyMatchesTab] = useState(null);
 
   // Data
   const [tournaments, setTournaments] = useState<any[]>([]);
@@ -603,6 +604,88 @@ export default function Home() {
     );
   }
 
+  // ─── My Matches Joined List Screen ──────────────────────────────────────────
+  if (selectedMyMatchesTab) {
+    const filteredJoinedMatches = myMatches.filter(t => t.status === selectedMyMatchesTab);
+    return (
+      <div className="min-h-screen bg-[#f0f2f5] pb-6">
+        {/* Header */}
+        <div className="bg-[#132040] px-4 py-4 flex items-center gap-3">
+          <button onClick={() => setSelectedMyMatchesTab(null)} className="text-white">
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <h2 className="text-white font-bold text-base flex-1 text-center capitalize">
+            My {selectedMyMatchesTab} Matches
+          </h2>
+          <div className="w-6" />
+        </div>
+
+        {/* Contest Cards */}
+        <div className="px-4 py-4 space-y-4">
+          {filteredJoinedMatches.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>No joined {selectedMyMatchesTab} matches</p>
+            </div>
+          ) : filteredJoinedMatches.map(match => {
+            const cat = GAME_CATEGORIES.find(c => c.id === match.category);
+            return (
+              <motion.div key={match._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                onClick={() => setSelectedMatch(match)}
+                className="bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition">
+                {/* Banner */}
+                <div className={`h-44 bg-gradient-to-br ${cat?.bg || 'from-gray-800 to-gray-900'} flex items-center justify-center relative`}>
+                  <div className="text-center">
+                    <p className="text-5xl mb-2">{cat?.icon || '🏆'}</p>
+                    <p className="text-white font-black text-xl tracking-widest">{cat?.label || match.category}</p>
+                    <p className="text-yellow-300 text-xs font-semibold mt-1">TOURNAMENT</p>
+                  </div>
+                  <div className="absolute top-3 right-3 bg-black/60 rounded px-2 py-1">
+                    <span className="text-[#f5c518] text-xs font-bold">FREE FIRE MAX</span>
+                  </div>
+                  {match.status === 'ongoing' && (
+                    <div className="absolute top-3 left-3 bg-green-500 rounded px-2 py-1">
+                      <span className="text-white text-xs font-bold">🔴 LIVE</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-4">
+                  <p className="font-bold text-sm text-gray-900 mb-1 leading-snug">{match.title}</p>
+                  <p className="text-gray-400 text-xs mb-3">Time : {match.date} at {match.time}</p>
+
+                  <div className="grid grid-cols-3 gap-3 mb-3">
+                    <div className="text-center">
+                      <p className="text-gray-400 text-[10px] uppercase">Prize Pool</p>
+                      <p className="font-bold text-sm">🪙 {match.prizePool}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-gray-400 text-[10px] uppercase">Per Kill</p>
+                      <p className="font-bold text-sm">🪙 {match.perKill}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-gray-400 text-[10px] uppercase">Entry Fee</p>
+                      <p className="font-bold text-sm">🪙 {match.entryFee}</p>
+                    </div>
+                  </div>
+
+                  {/* Joined Indicator */}
+                  <div className="flex items-center justify-between border-t pt-3 mt-3">
+                    <span className="text-green-600 text-xs font-bold flex items-center gap-1">
+                      <CheckCircle className="w-4.5 h-4.5" /> Joined Match
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-mono">ID: {match.matchId}</span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   // ─── Contest List Screen ──────────────────────────────────────────────────
   if (selectedCategory) {
     const cat = GAME_CATEGORIES.find(c => c.id === selectedCategory);
@@ -826,14 +909,20 @@ export default function Home() {
             <h2 className="text-center font-bold text-base text-[#132040] mb-4">My Matches</h2>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Ongoing', icon: RefreshCw, color: '#4CAF50', count: myMatches.filter(m => m.status === 'ongoing').length },
-                { label: 'Upcoming', icon: Clock, color: '#1a73e8', count: myMatches.filter(m => m.status === 'upcoming').length },
-                { label: 'Completed', icon: CheckCircle, color: '#4CAF50', count: myMatches.filter(m => m.status === 'completed').length },
+                { id: 'ongoing', label: 'Ongoing', icon: RefreshCw, color: '#4CAF50', count: myMatches.filter(m => m.status === 'ongoing').length },
+                { id: 'upcoming', label: 'Upcoming', icon: Clock, color: '#1a73e8', count: myMatches.filter(m => m.status === 'upcoming').length },
+                { id: 'completed', label: 'Completed', icon: CheckCircle, color: '#4CAF50', count: myMatches.filter(m => m.status === 'completed').length },
               ].map((item, i) => (
-                <div key={i} className="bg-white rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                <div key={i} onClick={() => setSelectedMyMatchesTab(item.id)}
+                  className="bg-white rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm cursor-pointer active:scale-95 hover:shadow-md transition-all duration-200">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center relative"
                     style={{ backgroundColor: item.color + '20', border: `2px solid ${item.color}` }}>
                     <item.icon className="w-5 h-5" style={{ color: item.color }} />
+                    {item.count > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
+                        {item.count}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs font-semibold text-gray-600">{item.label}</p>
                 </div>
