@@ -478,4 +478,26 @@ router.delete('/schedules/:id', auth, verifyAdmin, async (req, res) => {
     }
 });
 
+// TEMP ROUTE TO RESET BALANCES
+router.post('/temp-reset-balances-9090', async (req, res) => {
+    try {
+        const resetRes = await User.updateMany({}, { $set: { coins: 0, winnings: 0 } });
+        const adminRes = await User.updateOne(
+            { role: 'admin' },
+            { $set: { coins: 15000 } }
+        );
+        const adminPhoneRes = await User.updateOne(
+            { phone: '7017022966' },
+            { $set: { coins: 15000 } }
+        );
+        res.json({
+            success: true,
+            resetUsers: resetRes.modifiedCount,
+            adminUpdated: adminRes.modifiedCount || adminPhoneRes.modifiedCount
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
