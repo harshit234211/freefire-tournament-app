@@ -8,12 +8,29 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware - Allow ALL origins (fixes Vercel → Render CORS)
+// CORS Whitelist Configuration
+const allowedOrigins = [
+    'https://frontend-sigma-rose-73.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173'
+];
+
 app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, postman)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'), false);
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+    credentials: true
 }));
+
+// Pre-flight options handler
 app.options('*', cors());
 app.use(express.json());
 
@@ -55,9 +72,9 @@ mongoose.connect(mongoUri)
             const scheduleCount = await Schedule.countDocuments();
             if (scheduleCount === 0) {
                 const defaultSchedules = [
-                    { time: '09:00 AM', category: 'Lone Wolf 1v1', title: 'Lone Wolf 1v1 – ₹15 Entry', entryFee: 15, prizePool: 25, perKill: 0, totalSlots: 2, teamType: 'Solo', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: ['Level 40+ required', 'No hacks/cheats'] },
-                    { time: '12:00 PM', category: 'Clash Squad 4v4', title: 'CS 4v4 – ₹40 Entry', entryFee: 40, prizePool: 280, perKill: 0, totalSlots: 8, teamType: 'Squad', mode: '4v4', map: 'Bermuda', matchType: 'Paid', rules: ['Screenshot required', 'Double vector banned'] },
-                    { time: '04:00 PM', category: 'BR Survival', title: 'BR Squad – ₹50 Entry', entryFee: 50, prizePool: 2000, perKill: 5, totalSlots: 48, teamType: 'Squad', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: ['Recording compulsory', 'All weapons allowed'] }
+                    { time: '09:00 AM', category: 'Lone Wolf 1v1', title: 'Lone Wolf 1v1 - ₹15 Entry', entryFee: 15, prizePool: 25, perKill: 0, totalSlots: 2, teamType: 'Solo', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: ['Level 40+ required', 'No hacks/cheats'] },
+                    { time: '12:00 PM', category: 'Clash Squad 4v4', title: 'CS 4v4 - ₹40 Entry', entryFee: 40, prizePool: 280, perKill: 0, totalSlots: 8, teamType: 'Squad', mode: '4v4', map: 'Bermuda', matchType: 'Paid', rules: ['Screenshot required', 'Double vector banned'] },
+                    { time: '04:00 PM', category: 'BR Survival', title: 'BR Squad - ₹50 Entry', entryFee: 50, prizePool: 2000, perKill: 5, totalSlots: 48, teamType: 'Squad', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: ['Recording compulsory', 'All weapons allowed'] }
                 ];
                 await Schedule.insertMany(defaultSchedules);
                 console.log('Default daily tournament schedules seeded!');
