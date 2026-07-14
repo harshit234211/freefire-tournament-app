@@ -22,7 +22,7 @@ const GAME_CATEGORIES = [
   { id: 'Clash Squad 4v4',  label: 'CLASH SQUAD 4V4',      color: '#2980b9', bg: 'from-blue-900 to-indigo-800',  icon: '🛡️' },
   { id: 'Lone Wolf 2v2',    label: 'LONE WOLF 2V2',        color: '#27ae60', bg: 'from-green-900 to-teal-800',   icon: '🔥' },
   { id: 'CS Headshot',      label: 'CS HEADSHOT',          color: '#c0392b', bg: 'from-red-950 to-rose-800',     icon: '🎯' },
-  { id: 'Only UMP',         label: 'ONLY UMP 1V1',         color: '#d35400', bg: 'from-orange-900 to-amber-800', icon: '🔫' },
+  { id: 'Only UMP',         label: 'ONLY UMP',             color: '#d35400', bg: 'from-orange-900 to-amber-800', icon: '🔫' },
   { id: 'CS Challenges',    label: 'CS CHALLENGES',        color: '#7f8c8d', bg: 'from-slate-800 to-gray-700',   icon: '🏆' },
   { id: 'Free Tournament',  label: 'FREE TOURNAMENT',      color: '#1abc9c', bg: 'from-emerald-900 to-green-700',icon: '🎁' },
 ];
