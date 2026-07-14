@@ -1587,11 +1587,11 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Exit App Confirmation Overlay - inside Home component where showExitConfirm is defined */}
+      {/* Exit App Confirmation Overlay - belongs to Home component */}
       {showExitConfirm && (
         <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
           <div className="bg-[#0a1628] border border-gray-800 rounded-2xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto text-2xl">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto text-red-500 text-xl font-bold">
               ⚠️
             </div>
             <div className="space-y-1">
