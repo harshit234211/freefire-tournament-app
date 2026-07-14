@@ -43,7 +43,16 @@ function getTimeLeft(date: string, time: string) {
 
 const getCategoryThumbnail = (category) => {
   const cat = category?.toLowerCase() || '';
-  if (cat.includes('survival') || cat.includes('kill') || cat.includes('royale') || cat.includes('squad') && !cat.includes('clash')) {
+  if (cat.includes('headshot')) {
+    return '/cs_headshot.png';
+  }
+  if (cat.includes('clash squad 4v4') || cat.includes('cs 4v4')) {
+    return '/clash_squad_4v4.png';
+  }
+  if (cat.includes('per kill') || cat.includes('kill')) {
+    return '/br_per_kill.png';
+  }
+  if (cat.includes('survival') || cat.includes('royale') || (cat.includes('squad') && !cat.includes('clash'))) {
     return '/br_survival.png';
   }
   if (cat.includes('clash') || cat.includes('cs')) {
