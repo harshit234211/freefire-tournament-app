@@ -6,11 +6,59 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const Chat = require('../models/Chat');
 
+const Schedule = require('../models/Schedule');
+
+const getTodayIST = () => {
+    const d = new Date();
+    const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    const ist = new Date(utc + (3600000 * 5.5));
+    const yyyy = ist.getFullYear();
+    const mm = String(ist.getMonth() + 1).padStart(2, '0');
+    const dd = String(ist.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
 // @route   GET api/tournaments
-// @desc    Get all tournaments
+// @desc    Get all tournaments (auto-generates today's matches from schedule on demand)
 // @access  Public
 router.get('/', async (req, res) => {
     try {
+        const todayDate = getTodayIST();
+        const activeSchedules = await Schedule.find({ enabled: true });
+        const adminUser = await User.findOne({ role: 'admin' });
+
+        if (adminUser) {
+            for (const sched of activeSchedules) {
+                const exists = await Tournament.findOne({
+                    date: todayDate,
+                    time: sched.time,
+                    category: sched.category
+                });
+
+                if (!exists) {
+                    const newTourney = new Tournament({
+                        title: sched.title,
+                        category: sched.category,
+                        date: todayDate,
+                        time: sched.time,
+                        entryFee: sched.entryFee,
+                        prizePool: sched.prizePool,
+                        perKill: sched.perKill,
+                        totalSlots: sched.totalSlots,
+                        teamType: sched.teamType,
+                        mode: sched.mode,
+                        map: sched.map,
+                        matchType: sched.matchType,
+                        rules: sched.rules,
+                        prizeDistribution: sched.prizeDistribution,
+                        host: adminUser._id,
+                        status: 'upcoming'
+                    });
+                    await newTourney.save();
+                }
+            }
+        }
+
         const tournaments = await Tournament.find()
             .populate('host', 'username')
             .sort({ dateCreated: -1 });

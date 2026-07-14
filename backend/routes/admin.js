@@ -348,4 +348,89 @@ router.post('/deposits/:id/resolve', auth, verifyAdmin, async (req, res) => {
     }
 });
 
+const Schedule = require('../models/Schedule');
+
+// @route   GET api/admin/schedules
+// @desc    Get all daily schedules
+// @access  Private (Admin only)
+router.get('/schedules', auth, verifyAdmin, async (req, res) => {
+    try {
+        const schedules = await Schedule.find().sort({ time: 1 });
+        res.json(schedules);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// @route   POST api/admin/schedules
+// @desc    Create a new daily schedule template
+// @access  Private (Admin only)
+router.post('/schedules', auth, verifyAdmin, async (req, res) => {
+    const { time, category, title, entryFee, prizePool, perKill, totalSlots, teamType, mode, map, matchType, rules, prizeDistribution } = req.body;
+
+    if (!time || !category || !title || !entryFee || !prizePool) {
+        return res.status(400).json({ msg: 'Please fill all required fields' });
+    }
+
+    try {
+        const newSched = new Schedule({
+            time, category, title,
+            entryFee: parseInt(entryFee),
+            prizePool: parseInt(prizePool),
+            perKill: parseInt(perKill || 0),
+            totalSlots: parseInt(totalSlots || 20),
+            teamType: teamType || 'Solo',
+            mode: mode || 'Solo',
+            map: map || 'Bermuda',
+            matchType: matchType || 'Paid',
+            rules: Array.isArray(rules) ? rules : (rules ? rules.split('\n').filter(r => r.trim()) : []),
+            prizeDistribution: Array.isArray(prizeDistribution) ? prizeDistribution : []
+        });
+
+        await newSched.save();
+        res.json({ success: true, schedule: newSched });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// @route   PUT api/admin/schedules/:id
+// @desc    Update / Enable / Disable a schedule template
+// @access  Private (Admin only)
+router.put('/schedules/:id', auth, verifyAdmin, async (req, res) => {
+    try {
+        const schedule = await Schedule.findById(req.params.id);
+        if (!schedule) return res.status(404).json({ msg: 'Schedule template not found' });
+
+        const fieldsToUpdate = req.body;
+        
+        for (const [key, value] of Object.entries(fieldsToUpdate)) {
+            schedule[key] = value;
+        }
+
+        await schedule.save();
+        res.json({ success: true, schedule });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// @route   DELETE api/admin/schedules/:id
+// @desc    Delete a daily schedule template
+// @access  Private (Admin only)
+router.delete('/schedules/:id', auth, verifyAdmin, async (req, res) => {
+    try {
+        const schedule = await Schedule.findByIdAndDelete(req.params.id);
+        if (!schedule) return res.status(404).json({ msg: 'Schedule template not found' });
+
+        res.json({ success: true, msg: 'Schedule template deleted successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 module.exports = router;

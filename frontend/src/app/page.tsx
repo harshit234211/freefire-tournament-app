@@ -41,6 +41,30 @@ function getTimeLeft(date: string, time: string) {
   } catch { return '--'; }
 }
 
+const getCategoryThumbnail = (category) => {
+  const cat = category?.toLowerCase() || '';
+  if (cat.includes('survival') || cat.includes('kill') || cat.includes('royale') || cat.includes('squad') && !cat.includes('clash')) {
+    return '/br_survival.png';
+  }
+  if (cat.includes('clash') || cat.includes('cs')) {
+    return '/clash_squad.png';
+  }
+  if (cat.includes('lone') || cat.includes('wolf')) {
+    return '/lone_wolf.png';
+  }
+  return '/br_survival.png'; // default fallback
+};
+
+const getIsUpcoming = (match) => {
+  try {
+    const matchTime = new Date(`${match.date} ${match.time}`);
+    const now = new Date();
+    return matchTime.getTime() > now.getTime();
+  } catch {
+    return true;
+  }
+};
+
 export default function Home() {
   // Auth
   const [user, setUser] = useState<any>(null);
@@ -302,7 +326,7 @@ export default function Home() {
 
   const filteredByTab = categoryTournaments.filter(t => {
     if (contestTab === 'ongoing') return t.status === 'ongoing';
-    if (contestTab === 'upcoming') return t.status === 'upcoming';
+    if (contestTab === 'upcoming') return t.status === 'upcoming' && getIsUpcoming(t);
     if (contestTab === 'completed') return t.status === 'completed';
     return true;
   });
@@ -376,6 +400,17 @@ export default function Home() {
       p.user === user.id || p.user?._id === user.id);
     const isFull = selectedMatch.joinedPlayers?.length >= selectedMatch.totalSlots;
     const spotsLeft = selectedMatch.totalSlots - (selectedMatch.joinedPlayers?.length || 0);
+    const isRoomReleased = (() => {
+      try {
+        const matchTime = new Date(`${selectedMatch.date} ${selectedMatch.time}`);
+        const now = new Date();
+        const diffMs = matchTime.getTime() - now.getTime();
+        const diffMin = diffMs / 60000;
+        return diffMin <= 10 || user.role === 'admin' || user.role === 'host';
+      } catch {
+        return user.role === 'admin' || user.role === 'host';
+      }
+    })();
 
     return (
       <div className="min-h-screen bg-[#f0f2f5] pb-6">
@@ -391,14 +426,12 @@ export default function Home() {
         </div>
 
         {/* Banner */}
-        <div className="relative h-48 bg-gradient-to-br from-gray-700 to-gray-900">
-          <div className={`w-full h-full bg-gradient-to-br ${
-            GAME_CATEGORIES.find(c => c.id === selectedMatch.category)?.bg || 'from-gray-800 to-gray-900'
-          } flex items-center justify-center`}>
+        <div className="relative h-48 w-full overflow-hidden">
+          <img src={getCategoryThumbnail(selectedMatch.category)} alt={selectedMatch.category} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-5xl mb-2">{GAME_CATEGORIES.find(c => c.id === selectedMatch.category)?.icon || '🏆'}</p>
-              <p className="text-white font-black text-2xl tracking-widest">
-                {GAME_CATEGORIES.find(c => c.id === selectedMatch.category)?.label || selectedMatch.category}
+              <p className="text-white font-black text-2xl tracking-widest uppercase">
+                {selectedMatch.category}
               </p>
             </div>
           </div>
@@ -505,18 +538,122 @@ export default function Home() {
             </div>
           )}
 
-          {/* Room ID (if released) */}
-          {selectedMatch.roomId && (
-            <div className="bg-[#132040] rounded-xl p-4 text-center">
-              <p className="text-gray-400 text-xs mb-1">ROOM ID</p>
-              <p className="text-[#f5c518] font-black text-xl tracking-widest">{selectedMatch.roomId}</p>
-              {selectedMatch.roomPass && (
-                <>
-                  <p className="text-gray-400 text-xs mt-2 mb-1">ROOM PASSWORD</p>
-                  <p className="text-white font-bold text-lg">{selectedMatch.roomPass}</p>
-                </>
-              )}
+          {/* Match Results (if completed) */}
+          {selectedMatch.status === 'completed' && (
+            <div className="bg-[#132040] rounded-2xl p-5 text-center shadow-lg border border-green-500/20 space-y-4 text-white">
+              <div className="border-b border-gray-700/50 pb-2">
+                <p className="text-[#f5c518] text-xs font-bold uppercase tracking-widest">🏆 MATCH RESULT</p>
+                <span className="bg-green-500 text-white font-bold text-[9px] px-2 py-0.5 rounded">COMPLETED</span>
+              </div>
+
+              {(() => {
+                const myResult = selectedMatch.joinedPlayers?.find((p: any) => p.user === user.id || p.user?._id === user.id);
+                if (myResult) {
+                  const wonPrize = myResult.prize || 0;
+                  return (
+                    <div className="bg-[#0a1628] p-4 rounded-xl space-y-2 border border-gray-800">
+                      <p className="text-gray-400 text-xs font-medium">Your Performance</p>
+                      <div className="grid grid-cols-2 gap-4 text-center">
+                        <div>
+                          <p className="text-gray-500 text-[10px] uppercase">Rank</p>
+                          <p className="text-white font-black text-xl">#{myResult.rank || '--'}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-[10px] uppercase">Kills</p>
+                          <p className="text-[#f5c518] font-black text-xl">💀 {myResult.kills || 0}</p>
+                        </div>
+                      </div>
+                      <div className="border-t border-gray-800 pt-2 mt-2">
+                        <p className="text-gray-400 text-xs uppercase">Prize Won</p>
+                        <p className={`font-black text-lg ${wonPrize > 0 ? 'text-green-400' : 'text-gray-500'}`}>
+                          {wonPrize > 0 ? `🪙 ${wonPrize} (Credited)` : '₹0'}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return <p className="text-xs text-gray-400">You did not participate in this match.</p>;
+                }
+              })()}
+
+              {/* Leaderboard / Standings */}
+              <div className="space-y-2 text-left">
+                <p className="text-[#f5c518] text-xs font-bold uppercase">Standings</p>
+                <div className="bg-[#0a1628] rounded-xl overflow-hidden border border-gray-800">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-[#132040] text-gray-400">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Rank</th>
+                        <th className="px-3 py-2">Player</th>
+                        <th className="px-3 py-2 text-center">Kills</th>
+                        <th className="px-3 py-2 text-right">Prize</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedMatch.joinedPlayers
+                        ?.sort((a: any, b: any) => (a.rank || 999) - (b.rank || 999))
+                        .slice(0, 10)
+                        .map((p: any, idx: number) => (
+                          <tr key={idx} className="border-b border-gray-800/40 text-gray-300">
+                            <td className="px-3 py-2.5 font-bold text-[#f5c518]">#{p.rank || idx + 1}</td>
+                            <td className="px-3 py-2.5 truncate font-medium max-w-[120px]">{p.name || 'Player'}</td>
+                            <td className="px-3 py-2.5 text-center font-bold text-gray-200">{p.kills || 0}</td>
+                            <td className="px-3 py-2.5 text-right font-black text-green-400">{p.prize ? `🪙 ${p.prize}` : '--'}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* Room ID & Pass section */}
+          {selectedMatch.roomId ? (
+            isRoomReleased ? (
+              <div className="bg-[#132040] rounded-2xl p-5 text-center shadow-lg border border-[#f5c518]/20 space-y-4">
+                <div className="border-b border-gray-700/50 pb-2">
+                  <p className="text-gray-400 text-[10px] tracking-widest font-bold uppercase mb-1">🎮 CUSTOM ROOM DETAILS</p>
+                  <span className="bg-green-500 text-white font-bold text-[9px] px-2 py-0.5 rounded">RELEASED</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-[#0a1628] p-3 rounded-xl border border-gray-700/30">
+                    <p className="text-gray-500 text-[9px] mb-1 uppercase">Room ID</p>
+                    <p className="text-[#f5c518] font-black text-base tracking-widest select-all">{selectedMatch.roomId}</p>
+                    <button onClick={() => { navigator.clipboard.writeText(selectedMatch.roomId); setWalletMsg('📋 Room ID Copied!'); setTimeout(() => setWalletMsg(''), 2000); }}
+                      className="mt-2 text-[10px] bg-[#f5c518] text-black font-bold px-2 py-1 rounded hover:opacity-90 active:scale-95 transition">
+                      Copy
+                    </button>
+                  </div>
+                  
+                  <div className="bg-[#0a1628] p-3 rounded-xl border border-gray-700/30">
+                    <p className="text-gray-500 text-[9px] mb-1 uppercase">Password</p>
+                    <p className="text-white font-bold text-base select-all">{selectedMatch.roomPass || 'N/A'}</p>
+                    {selectedMatch.roomPass && (
+                      <button onClick={() => { navigator.clipboard.writeText(selectedMatch.roomPass); setWalletMsg('📋 Password Copied!'); setTimeout(() => setWalletMsg(''), 2000); }}
+                        className="mt-2 text-[10px] bg-white text-black font-bold px-2 py-1 rounded hover:opacity-90 active:scale-95 transition">
+                        Copy
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-[#132040] rounded-2xl p-5 text-center shadow-lg border border-gray-800 space-y-2">
+                <p className="text-gray-400 text-xs font-semibold">🔒 Room ID & Password</p>
+                <p className="text-xs text-yellow-500 font-bold bg-[#f5c518]/10 p-2.5 rounded-xl">
+                  Revealing automatically exactly 10 minutes before the match start time!
+                </p>
+              </div>
+            )
+          ) : (
+            joined && (
+              <div className="bg-[#132040] rounded-2xl p-5 text-center shadow-lg border border-gray-800 space-y-1">
+                <p className="text-gray-400 text-xs font-semibold">🔒 Room ID & Password</p>
+                <p className="text-xs text-gray-500">Not released yet by the Host / Admin.</p>
+              </div>
+            )
           )}
 
           {/* Join success msg */}
@@ -634,11 +771,14 @@ export default function Home() {
                 onClick={() => setSelectedMatch(match)}
                 className="bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition">
                 {/* Banner */}
-                <div className={`h-44 bg-gradient-to-br ${cat?.bg || 'from-gray-800 to-gray-900'} flex items-center justify-center relative`}>
-                  <div className="text-center">
-                    <p className="text-5xl mb-2">{cat?.icon || '🏆'}</p>
-                    <p className="text-white font-black text-xl tracking-widest">{cat?.label || match.category}</p>
-                    <p className="text-yellow-300 text-xs font-semibold mt-1">TOURNAMENT</p>
+                {/* Banner */}
+                <div className="h-44 w-full overflow-hidden relative">
+                  <img src={getCategoryThumbnail(match.category)} alt={match.category} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-white font-black text-xl tracking-widest uppercase">{match.category}</p>
+                      <p className="text-yellow-300 text-xs font-semibold mt-1">TOURNAMENT</p>
+                    </div>
                   </div>
                   <div className="absolute top-3 right-3 bg-black/60 rounded px-2 py-1">
                     <span className="text-[#f5c518] text-xs font-bold">FREE FIRE MAX</span>
@@ -727,11 +867,14 @@ export default function Home() {
                 onClick={() => setSelectedMatch(match)}
                 className="bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.99] transition">
                 {/* Banner */}
-                <div className={`h-44 bg-gradient-to-br ${cat?.bg || 'from-gray-800 to-gray-900'} flex items-center justify-center relative`}>
-                  <div className="text-center">
-                    <p className="text-5xl mb-2">{cat?.icon || '🏆'}</p>
-                    <p className="text-white font-black text-xl tracking-widest">{cat?.label || selectedCategory}</p>
-                    <p className="text-yellow-300 text-xs font-semibold mt-1">TOURNAMENT</p>
+                {/* Banner */}
+                <div className="h-44 w-full overflow-hidden relative">
+                  <img src={getCategoryThumbnail(match.category)} alt={match.category} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-white font-black text-xl tracking-widest uppercase">{match.category}</p>
+                      <p className="text-yellow-300 text-xs font-semibold mt-1">TOURNAMENT</p>
+                    </div>
                   </div>
                   <div className="absolute top-3 right-3 bg-black/60 rounded px-2 py-1">
                     <span className="text-[#f5c518] text-xs font-bold">FREE FIRE MAX</span>
@@ -934,8 +1077,8 @@ export default function Home() {
           <div className="px-4 pb-4">
             <h2 className="font-bold text-sm text-[#132040] mb-3">Esports Games</h2>
             <div className="grid grid-cols-2 gap-3">
-              {GAME_CATEGORIES.map(cat => {
-                const count = tournaments.filter(t => t.category === cat.id).length;
+               {GAME_CATEGORIES.map(cat => {
+                const count = tournaments.filter(t => t.category === cat.id && t.status === 'upcoming' && getIsUpcoming(t)).length;
                 return (
                   <motion.div key={cat.id} whileTap={{ scale: 0.97 }}
                     onClick={() => { setSelectedCategory(cat.id); setContestTab('upcoming'); }}
@@ -1302,10 +1445,136 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
     }
   }, [API_URL, getHeaders]);
 
+  const [schedules, setSchedules] = useState([]);
+  const [loadingSchedules, setLoadingSchedules] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState(null);
+  const [showScheduleForm, setShowScheduleForm] = useState(false);
+
+  const [schedTime, setSchedTime] = useState('09:00 AM');
+  const [schedCategory, setSchedCategory] = useState('Lone Wolf 1v1');
+  const [schedTitle, setSchedTitle] = useState('Lone Wolf 1v1 – ₹15 Entry');
+  const [schedEntryFee, setSchedEntryFee] = useState('15');
+  const [schedPrizePool, setSchedPrizePool] = useState('25');
+  const [schedPerKill, setSchedPerKill] = useState('0');
+  const [schedTotalSlots, setSchedTotalSlots] = useState('2');
+  const [schedRules, setSchedRules] = useState('');
+
+  const fetchSchedules = useCallback(async () => {
+    if (user.role !== 'admin') return;
+    setLoadingSchedules(true);
+    try {
+      const res = await fetch(`${API_URL}/admin/schedules`, { headers: getHeaders() });
+      if (res.ok) setSchedules(await res.json());
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingSchedules(false);
+    }
+  }, [API_URL, getHeaders, user.role]);
+
+  const handleSaveSchedule = async (e) => {
+    e.preventDefault();
+    const payload = {
+      time: schedTime,
+      category: schedCategory,
+      title: schedTitle,
+      entryFee: parseInt(schedEntryFee),
+      prizePool: parseInt(schedPrizePool),
+      perKill: parseInt(schedPerKill || 0),
+      totalSlots: parseInt(schedTotalSlots || 20),
+      rules: schedRules
+    };
+
+    try {
+      const url = editingSchedule ? `${API_URL}/admin/schedules/${editingSchedule._id}` : `${API_URL}/admin/schedules`;
+      const method = editingSchedule ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: getHeaders(),
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        setMsg(editingSchedule ? 'Schedule updated!' : 'Schedule template added!');
+        setShowScheduleForm(false);
+        setEditingSchedule(null);
+        fetchSchedules();
+      } else {
+        const data = await res.json();
+        setMsg(data.msg || 'Save failed');
+      }
+    } catch {
+      setMsg('Connection error');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleToggleSchedule = async (sched) => {
+    try {
+      const res = await fetch(`${API_URL}/admin/schedules/${sched._id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ enabled: !sched.enabled })
+      });
+      if (res.ok) {
+        setMsg(`Schedule ${!sched.enabled ? 'enabled' : 'disabled'}!`);
+        fetchSchedules();
+      }
+    } catch {
+      setMsg('Toggle failed');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleDeleteSchedule = async (id) => {
+    if (!confirm('Are you sure you want to delete this schedule template?')) return;
+    try {
+      const res = await fetch(`${API_URL}/admin/schedules/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        setMsg('Schedule deleted!');
+        fetchSchedules();
+      }
+    } catch {
+      setMsg('Delete failed');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  const startEditSchedule = (sched) => {
+    setEditingSchedule(sched);
+    setSchedTime(sched.time);
+    setSchedCategory(sched.category);
+    setSchedTitle(sched.title);
+    setSchedEntryFee(String(sched.entryFee));
+    setSchedPrizePool(String(sched.prizePool));
+    setSchedPerKill(String(sched.perKill || 0));
+    setSchedTotalSlots(String(sched.totalSlots || 20));
+    setSchedRules(Array.isArray(sched.rules) ? sched.rules.join('\n') : (sched.rules || ''));
+    setShowScheduleForm(true);
+  };
+
+  const startAddSchedule = () => {
+    setEditingSchedule(null);
+    setSchedTime('09:00 AM');
+    setSchedCategory('Lone Wolf 1v1');
+    setSchedTitle('Lone Wolf 1v1 – ₹15 Entry');
+    setSchedEntryFee('15');
+    setSchedPrizePool('25');
+    setSchedPerKill('0');
+    setSchedTotalSlots('2');
+    setSchedRules('');
+    setShowScheduleForm(true);
+  };
+
   useEffect(() => {
     fetchHostedMatches();
     fetchPendingTransactions();
-  }, [fetchHostedMatches, fetchPendingTransactions]);
+    fetchSchedules();
+  }, [fetchHostedMatches, fetchPendingTransactions, fetchSchedules]);
 
   const handleSaveRoom = async (matchId) => {
     try {
@@ -1376,10 +1645,12 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
     <div className="bg-white rounded-2xl p-5 shadow-sm space-y-4">
       <div className="flex justify-between items-center border-b pb-3 border-gray-100">
         <h3 className="font-bold text-sm text-[#132040]">🛠️ Host/Admin Panel</h3>
-        <button onClick={() => { setSelectedCategory('BR Survival'); setShowCreateMatch(true); }}
-          className="bg-[#f5c518] text-black font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 active:scale-95 transition">
-          + Create Match
-        </button>
+        {user.role === 'admin' && (
+          <button onClick={() => { setSelectedCategory('BR Survival'); setShowCreateMatch(true); }}
+            className="bg-[#f5c518] text-black font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 active:scale-95 transition">
+            + Create Match
+          </button>
+        )}
       </div>
 
       {msg && (
@@ -1529,6 +1800,132 @@ function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setSh
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Daily Schedule Builder (Admin Only) */}
+      {user.role === 'admin' && (
+        <div className="border-t pt-4 border-gray-100 space-y-3">
+          <div className="flex justify-between items-center">
+            <p className="text-xs text-gray-500 font-bold">📅 Daily Schedule Builder</p>
+            <button onClick={startAddSchedule}
+              className="bg-[#132040] text-[#f5c518] font-bold px-2.5 py-1 rounded text-[10px] hover:opacity-90 active:scale-95 transition">
+              + Add Slot
+            </button>
+          </div>
+
+          {loadingSchedules ? (
+            <p className="text-xs text-gray-400 text-center py-2">Loading schedule slots...</p>
+          ) : schedules.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-2 bg-gray-50 rounded-lg">No active schedules. Create one to auto-publish matches daily!</p>
+          ) : (
+            <div className="space-y-2">
+              {schedules.map((sched) => (
+                <div key={sched._id} className="border border-gray-100 rounded-xl p-3 bg-gray-50/50 flex justify-between items-center text-xs">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-gray-800">{sched.time}</span>
+                      <span className="text-[10px] bg-slate-200 text-slate-700 font-semibold px-1.5 py-0.5 rounded">
+                        {sched.category}
+                      </span>
+                    </div>
+                    <p className="text-gray-500 font-medium text-[10px]">{sched.title}</p>
+                    <p className="text-gray-400 text-[9px]">Fee: 🪙 {sched.entryFee} | Prize: 🪙 {sched.prizePool} | Slots: {sched.totalSlots}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => handleToggleSchedule(sched)}
+                      className={`px-2 py-1 rounded text-[10px] font-bold ${
+                        sched.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
+                      }`}>
+                      {sched.enabled ? 'Enabled' : 'Disabled'}
+                    </button>
+                    <button onClick={() => startEditSchedule(sched)}
+                      className="px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded text-[10px]">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDeleteSchedule(sched._id)}
+                      className="px-2 py-1 bg-red-100 text-red-700 font-bold rounded text-[10px]">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Schedule Form Modal */}
+          {showScheduleForm && (
+            <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl p-5 w-full max-w-sm max-h-[85vh] overflow-y-auto space-y-4">
+                <div className="flex justify-between items-center border-b pb-3">
+                  <h3 className="font-bold text-sm text-[#132040]">
+                    {editingSchedule ? 'Edit Schedule Slot' : 'Add Daily Schedule Slot'}
+                  </h3>
+                  <button onClick={() => setShowScheduleForm(false)} className="text-gray-400 font-bold">✕</button>
+                </div>
+
+                <form onSubmit={handleSaveSchedule} className="space-y-3">
+                  <div>
+                    <label className="text-[10px] text-gray-500 font-bold block mb-1">Time Slot (e.g. 06:00 AM, 10:30 PM)</label>
+                    <input type="text" value={schedTime} onChange={e => setSchedTime(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]" required />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-gray-500 font-bold block mb-1">Category</label>
+                    <select value={schedCategory} onChange={e => setSchedCategory(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]">
+                      {GAME_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-gray-500 font-bold block mb-1">Match Title</label>
+                    <input type="text" value={schedTitle} onChange={e => setSchedTitle(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]" required />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] text-gray-500 font-bold block mb-1">Entry Fee (🪙)</label>
+                      <input type="number" value={schedEntryFee} onChange={e => setSchedEntryFee(e.target.value)}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]" required />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 font-bold block mb-1">Prize Pool (🪙)</label>
+                      <input type="number" value={schedPrizePool} onChange={e => setSchedPrizePool(e.target.value)}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]" required />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] text-gray-500 font-bold block mb-1">Per Kill (🪙)</label>
+                      <input type="number" value={schedPerKill} onChange={e => setSchedPerKill(e.target.value)}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 font-bold block mb-1">Total Slots</label>
+                      <input type="number" value={schedTotalSlots} onChange={e => setSchedTotalSlots(e.target.value)}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518]" required />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-gray-500 font-bold block mb-1">Rules (one per line)</label>
+                    <textarea rows={3} value={schedRules} onChange={e => setSchedRules(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#f5c518] resize-none" placeholder="No emulator allowed..." />
+                  </div>
+
+                  <button type="submit"
+                    className="w-full bg-[#132040] text-[#f5c518] font-bold py-3 rounded-xl text-xs tracking-wider">
+                    {editingSchedule ? 'UPDATE SCHEDULE' : 'SAVE SCHEDULE'}
+                  </button>
+                </form>
+              </div>
             </div>
           )}
         </div>

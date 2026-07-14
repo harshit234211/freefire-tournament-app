@@ -49,8 +49,21 @@ mongoose.connect(mongoUri)
                 await admin.save();
                 console.log('Admin Account verified and synced!');
             }
+
+            // Seed default schedules if empty
+            const Schedule = require('./models/Schedule');
+            const scheduleCount = await Schedule.countDocuments();
+            if (scheduleCount === 0) {
+                const defaultSchedules = [
+                    { time: '09:00 AM', category: 'Lone Wolf 1v1', title: 'Lone Wolf 1v1 – ₹15 Entry', entryFee: 15, prizePool: 25, perKill: 0, totalSlots: 2, teamType: 'Solo', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: ['Level 40+ required', 'No hacks/cheats'] },
+                    { time: '12:00 PM', category: 'Clash Squad 4v4', title: 'CS 4v4 – ₹40 Entry', entryFee: 40, prizePool: 280, perKill: 0, totalSlots: 8, teamType: 'Squad', mode: '4v4', map: 'Bermuda', matchType: 'Paid', rules: ['Screenshot required', 'Double vector banned'] },
+                    { time: '04:00 PM', category: 'BR Survival', title: 'BR Squad – ₹50 Entry', entryFee: 50, prizePool: 2000, perKill: 5, totalSlots: 48, teamType: 'Squad', mode: 'Solo', map: 'Bermuda', matchType: 'Paid', rules: ['Recording compulsory', 'All weapons allowed'] }
+                ];
+                await Schedule.insertMany(defaultSchedules);
+                console.log('Default daily tournament schedules seeded!');
+            }
         } catch (seedErr) {
-            console.error('Error seeding admin account:', seedErr.message);
+            console.error('Error seeding admin account/schedules:', seedErr.message);
         }
     })
     .catch(err => {
