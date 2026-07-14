@@ -1021,25 +1021,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Admin Panel */}
-          {user.role === 'admin' && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h3 className="font-bold text-sm text-[#132040] mb-3">🛡️ Admin Panel</h3>
-              <button onClick={() => { setSelectedCategory('BR Survival'); setShowCreateMatch(true); }}
-                className="w-full bg-[#f5c518] text-black font-bold py-3 rounded-xl text-sm mb-3">
-                + Create New Match
-              </button>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#f0f2f5] rounded-xl p-3 text-center">
-                  <p className="text-xs text-gray-500">Total Matches</p>
-                  <p className="font-black text-xl text-[#132040]">{tournaments.length}</p>
-                </div>
-                <div className="bg-[#f0f2f5] rounded-xl p-3 text-center">
-                  <p className="text-xs text-gray-500">Active</p>
-                  <p className="font-black text-xl text-green-500">{tournaments.filter(t => t.status === 'ongoing').length}</p>
-                </div>
-              </div>
-            </div>
+          {/* Host / Admin Panel */}
+          {(user.role === 'admin' || user.role === 'host') && (
+            <HostPanel user={user} token={token} getHeaders={getHeaders} tournaments={tournaments} setTournaments={setTournaments} setShowCreateMatch={setShowCreateMatch} setSelectedCategory={setSelectedCategory} API_URL={API_URL} />
           )}
 
           {/* Logout */}
@@ -1130,6 +1114,249 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function HostPanel({ user, token, getHeaders, tournaments, setTournaments, setShowCreateMatch, setSelectedCategory, API_URL }) {
+  const [hostedMatches, setHostedMatches] = useState([]);
+  const [loadingMatches, setLoadingMatches] = useState(true);
+  const [editingRoomId, setEditingRoomId] = useState(null);
+  const [roomIdInput, setRoomIdInput] = useState('');
+  const [roomPassInput, setRoomPassInput] = useState('');
+  const [resolvingMatch, setResolvingMatch] = useState(null);
+  const [playerStandings, setPlayerStandings] = useState([]);
+  const [resolvingSubmitLoading, setResolvingSubmitLoading] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  const fetchHostedMatches = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/host/matches`, { headers: getHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setHostedMatches(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMatches(false);
+    }
+  }, [API_URL, getHeaders]);
+
+  useEffect(() => {
+    fetchHostedMatches();
+  }, [fetchHostedMatches]);
+
+  const handleSaveRoom = async (matchId) => {
+    try {
+      const res = await fetch(`${API_URL}/host/match/${matchId}/room`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ roomId: roomIdInput, roomPass: roomPassInput })
+      });
+      if (res.ok) {
+        setMsg('Room info updated!');
+        setEditingRoomId(null);
+        fetchHostedMatches();
+      } else {
+        const data = await res.json();
+        setMsg(data.msg || 'Update failed');
+      }
+    } catch {
+      setMsg('Connection error');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  const startResolve = (match) => {
+    setResolvingMatch(match);
+    const standings = match.joinedPlayers.map(p => ({
+      uid: p.uid || p.user?.ffUid || '',
+      name: p.name || p.user?.username || '',
+      kills: p.kills || 0,
+      rank: p.rank || 0
+    }));
+    setPlayerStandings(standings);
+  };
+
+  const handleUpdateStanding = (index, field, value) => {
+    const updated = [...playerStandings];
+    updated[index] = {
+      ...updated[index],
+      [field]: field === 'name' || field === 'uid' ? value : parseInt(value) || 0
+    };
+    setPlayerStandings(updated);
+  };
+
+  const handleResolveSubmit = async () => {
+    setResolvingSubmitLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/host/match/${resolvingMatch._id}/resolve`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ playerResults: playerStandings })
+      });
+      if (res.ok) {
+        setMsg('Match resolved successfully!');
+        setResolvingMatch(null);
+        fetchHostedMatches();
+      } else {
+        const data = await res.json();
+        setMsg(data.msg || 'Resolve failed');
+      }
+    } catch {
+      setMsg('Connection error');
+    } finally {
+      setResolvingSubmitLoading(false);
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-sm space-y-4">
+      <div className="flex justify-between items-center border-b pb-3 border-gray-100">
+        <h3 className="font-bold text-sm text-[#132040]">🛠️ Host/Admin Panel</h3>
+        <button onClick={() => { setSelectedCategory('BR Survival'); setShowCreateMatch(true); }}
+          className="bg-[#f5c518] text-black font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 active:scale-95 transition">
+          + Create Match
+        </button>
+      </div>
+
+      {msg && (
+        <div className="bg-blue-50 text-blue-700 text-xs font-semibold p-2.5 rounded-lg text-center">
+          {msg}
+        </div>
+      )}
+
+      <div>
+        <p className="text-xs text-gray-500 font-bold mb-2">Hosted Matches ({hostedMatches.length})</p>
+        
+        {loadingMatches ? (
+          <div className="text-center py-4 text-xs text-gray-400">Loading hosted matches...</div>
+        ) : hostedMatches.length === 0 ? (
+          <div className="text-center py-4 text-xs text-gray-400">No matches hosted yet.</div>
+        ) : (
+          <div className="space-y-3">
+            {hostedMatches.map((match) => (
+              <div key={match._id} className="border border-gray-100 rounded-xl p-3 bg-gray-50/50 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] bg-[#132040]/10 text-[#132040] font-bold px-2 py-0.5 rounded-full">
+                      {match.category}
+                    </span>
+                    <h4 className="font-bold text-xs text-gray-800 mt-1">{match.title}</h4>
+                    <p className="text-[10px] text-gray-400 mt-0.5">ID: {match.matchId} | Slots: {match.joinedPlayers?.length}/{match.totalSlots}</p>
+                  </div>
+                  <span className={`text-[10px] font-bold uppercase ${
+                    match.status === 'completed' ? 'text-green-500' : 'text-blue-500'
+                  }`}>
+                    {match.status}
+                  </span>
+                </div>
+
+                {match.status !== 'completed' && (
+                  <div className="flex gap-2 pt-1">
+                    <button onClick={() => {
+                      setEditingRoomId(match._id);
+                      setRoomIdInput(match.roomId || '');
+                      setRoomPassInput(match.roomPass || '');
+                    }}
+                      className="flex-1 py-1.5 bg-gray-100 text-gray-700 font-semibold rounded-lg text-[10px] hover:bg-gray-200">
+                      Set Room ID/Pass
+                    </button>
+                    <button onClick={() => startResolve(match)}
+                      className="flex-1 py-1.5 bg-[#132040] text-[#f5c518] font-bold rounded-lg text-[10px] hover:opacity-90">
+                      Resolve Match
+                    </button>
+                  </div>
+                )}
+
+                {editingRoomId === match._id && (
+                  <div className="bg-white border border-gray-100 rounded-lg p-3 space-y-2 mt-2">
+                    <p className="text-[10px] font-bold text-gray-600">Set Room Credentials</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="text" placeholder="Room ID" value={roomIdInput}
+                        onChange={e => setRoomIdInput(e.target.value)}
+                        className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none" />
+                      <input type="text" placeholder="Password" value={roomPassInput}
+                        onChange={e => setRoomPassInput(e.target.value)}
+                        className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none" />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditingRoomId(null)}
+                        className="flex-1 py-1 border border-red-200 text-red-500 rounded text-[10px]">
+                        Cancel
+                      </button>
+                      <button onClick={() => handleSaveRoom(match._id)}
+                        className="flex-1 py-1 bg-green-500 text-white font-bold rounded text-[10px]">
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {resolvingMatch && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-5 w-full max-w-lg max-h-[85vh] overflow-y-auto space-y-4">
+            <div className="flex justify-between items-center border-b pb-3">
+              <div>
+                <h3 className="font-bold text-sm text-[#132040]">Resolve: {resolvingMatch.title}</h3>
+                <p className="text-[10px] text-gray-400">{resolvingMatch.matchId}</p>
+              </div>
+              <button onClick={() => setResolvingMatch(null)} className="text-gray-400 font-bold">✕</button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-bold text-gray-600">Enter Standings for Joined Players</p>
+              
+              {playerStandings.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-4">No players joined this match.</p>
+              ) : (
+                <div className="space-y-3 max-h-[45vh] overflow-y-auto pr-1">
+                  {playerStandings.map((p, idx) => (
+                    <div key={idx} className="border border-gray-100 rounded-xl p-3 bg-gray-50/50 space-y-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-semibold text-gray-800">{p.name || 'Anonymous'}</span>
+                        <span className="text-[10px] text-gray-400">UID: {p.uid}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] text-gray-500 font-medium block mb-0.5">Kills</label>
+                          <input type="number" min="0" value={p.kills}
+                            onChange={e => handleUpdateStanding(idx, 'kills', e.target.value)}
+                            className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                        </div>
+                        <div>
+                          <label className="text-[9px] text-gray-500 font-medium block mb-0.5">Rank (1 for winner)</label>
+                          <input type="number" min="1" value={p.rank}
+                            onChange={e => handleUpdateStanding(idx, 'rank', e.target.value)}
+                            className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setResolvingMatch(null)}
+                className="flex-1 py-3 border border-red-200 text-red-500 font-bold rounded-xl text-xs">
+                Cancel
+              </button>
+              <button onClick={handleResolveSubmit} disabled={resolvingSubmitLoading}
+                className="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl text-xs hover:bg-green-600 active:scale-95 transition">
+                {resolvingSubmitLoading ? 'Resolving Standings...' : 'Disburse Prize & Finish'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
