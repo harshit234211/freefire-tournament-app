@@ -18,6 +18,16 @@ const getTodayIST = () => {
     return `${yyyy}-${mm}-${dd}`;
 };
 
+// @route   GET api/tournaments/delete-all-temp-dangerous-route
+router.get('/delete-all-temp-dangerous-route', async (req, res) => {
+    try {
+        await Tournament.deleteMany({});
+        res.json({ msg: 'All matches deleted successfully' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // @route   GET api/tournaments
 // @desc    Get all tournaments (auto-generates today's matches from schedule on demand)
 // @access  Public
