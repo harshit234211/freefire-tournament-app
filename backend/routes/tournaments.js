@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
         res.json(tournamentsList);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
         res.json(tournament);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -148,7 +148,7 @@ router.post('/:id/join', auth, async (req, res) => {
         res.json({ tournament, user });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -164,7 +164,7 @@ router.get('/:id/chat', auth, async (req, res) => {
         res.json(chats);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -189,7 +189,7 @@ router.post('/:id/chat', auth, async (req, res) => {
         res.json(chatMsg);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

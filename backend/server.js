@@ -94,21 +94,33 @@ mongoose.connect(mongoUri)
         console.error('Database connection error:', err.message);
     });
 
+// Guard: fail fast with a clear message when the database is not connected,
+// instead of letting Mongoose buffer queries until they time out (which
+// surfaces to users as a generic/hanging "Server error" on login).
+const dbGuard = (req, res, next) => {
+    if (mongoose.connection.readyState !== 1) {
+        return res.status(503).json({
+            msg: 'Service temporarily unavailable: database not connected. Please try again in a moment.'
+        });
+    }
+    next();
+};
+
 // API Routes (with /api prefix)
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/tournaments', require('./routes/tournaments'));
-app.use('/api/wallet', require('./routes/wallet'));
-app.use('/api/clans', require('./routes/clans'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/host', require('./routes/host'));
+app.use('/api/auth', dbGuard, require('./routes/auth'));
+app.use('/api/tournaments', dbGuard, require('./routes/tournaments'));
+app.use('/api/wallet', dbGuard, require('./routes/wallet'));
+app.use('/api/clans', dbGuard, require('./routes/clans'));
+app.use('/api/admin', dbGuard, require('./routes/admin'));
+app.use('/api/host', dbGuard, require('./routes/host'));
 
 // API Routes (without /api prefix - for backward compatibility)
-app.use('/auth', require('./routes/auth'));
-app.use('/tournaments', require('./routes/tournaments'));
-app.use('/wallet', require('./routes/wallet'));
-app.use('/clans', require('./routes/clans'));
-app.use('/admin', require('./routes/admin'));
-app.use('/host', require('./routes/host'));
+app.use('/auth', dbGuard, require('./routes/auth'));
+app.use('/tournaments', dbGuard, require('./routes/tournaments'));
+app.use('/wallet', dbGuard, require('./routes/wallet'));
+app.use('/clans', dbGuard, require('./routes/clans'));
+app.use('/admin', dbGuard, require('./routes/admin'));
+app.use('/host', dbGuard, require('./routes/host'));
 
 // Root endpoint
 app.get('/', (req, res) => {

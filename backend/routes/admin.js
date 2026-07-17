@@ -60,7 +60,7 @@ router.get('/stats', auth, verifyAdmin, async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -83,7 +83,7 @@ router.get('/users', auth, verifyAdmin, async (req, res) => {
         res.json(users);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -104,7 +104,7 @@ router.post('/users/:id/role', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, user: { id: userObj.id, username: userObj.username, role: userObj.role } });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -138,7 +138,7 @@ router.post('/hosts/create', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, host: { id: hostUser.id, username: hostUser.username, phone: hostUser.phone } });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -153,7 +153,7 @@ router.get('/withdrawals', auth, verifyAdmin, async (req, res) => {
         res.json(withdrawals);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -209,7 +209,7 @@ router.post('/withdrawals/:id/resolve', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, transaction });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -252,7 +252,7 @@ router.post('/tournaments/create', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, tournament });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -348,7 +348,7 @@ router.get('/earnings', auth, verifyAdmin, async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -363,7 +363,7 @@ router.get('/deposits', auth, verifyAdmin, async (req, res) => {
         res.json(deposits);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -419,7 +419,7 @@ router.post('/deposits/:id/resolve', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, transaction });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -434,7 +434,7 @@ router.get('/schedules', auth, verifyAdmin, async (req, res) => {
         res.json(schedules);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -468,7 +468,7 @@ router.post('/schedules', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, schedule: newSched });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -490,7 +490,7 @@ router.put('/schedules/:id', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, schedule });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -505,7 +505,7 @@ router.delete('/schedules/:id', auth, verifyAdmin, async (req, res) => {
         res.json({ success: true, msg: 'Schedule template deleted successfully' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

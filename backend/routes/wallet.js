@@ -37,7 +37,7 @@ router.post('/deposit/create', auth, async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -94,7 +94,7 @@ router.post('/deposit/verify', auth, async (req, res) => {
         }
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -147,7 +147,7 @@ router.post('/withdraw/request', auth, async (req, res) => {
         res.json({ success: true, user, transaction });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -196,7 +196,7 @@ router.post('/deposit/manual', auth, async (req, res) => {
         res.json({ success: true, transaction });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

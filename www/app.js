@@ -1,4 +1,4 @@
-let API_URL = "https://slippery-chipmunk-84.loca.lt/api";
+let API_URL = "https://freefire-tournament-app.onrender.com/api";
 
 // Auto-detect environment: Use localhost directly if opened on the laptop browser
 if (window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
