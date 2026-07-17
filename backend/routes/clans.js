@@ -41,7 +41,7 @@ router.post('/create', auth, async (req, res) => {
         res.json({ success: true, clan });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -75,7 +75,7 @@ router.post('/join', auth, async (req, res) => {
         res.json({ success: true, clan });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -90,7 +90,7 @@ router.get('/ranking', async (req, res) => {
         res.json(clans);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -121,7 +121,7 @@ router.get('/:id/chat', auth, async (req, res) => {
         res.json(cleanChats);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -149,7 +149,7 @@ router.post('/:id/chat', auth, async (req, res) => {
         res.json(chatMsg);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

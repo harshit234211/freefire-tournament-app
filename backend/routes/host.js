@@ -30,7 +30,7 @@ router.get('/matches', auth, verifyHost, async (req, res) => {
         res.json(matches);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -55,7 +55,7 @@ router.post('/match/:id/room', auth, verifyHost, async (req, res) => {
         res.json({ success: true, msg: 'Room credentials published successfully', match });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -163,7 +163,7 @@ router.post('/match/:id/resolve', auth, verifyHost, async (req, res) => {
         res.json({ success: true, msg: 'Match resolved and payments completed successfully' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -183,7 +183,7 @@ router.post('/match/:id/notice', auth, verifyHost, async (req, res) => {
         res.json({ success: true, msg: 'Match announcement notice updated successfully', match });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

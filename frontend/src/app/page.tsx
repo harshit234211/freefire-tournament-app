@@ -11,7 +11,7 @@ import {
   TrendingUp, Gift
 } from 'lucide-react';
 
-const API_URL = 'https://freefire-tournament-app.onrender.com/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://freefire-tournament-app.onrender.com/api';
 
 // Game categories with colors
 const GAME_CATEGORIES = [
@@ -164,14 +164,19 @@ export default function Home() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-      const data = await res.json();
-      if (!res.ok) { setAuthError(data.msg || 'Error'); return; }
+      const raw = await res.text();
+      let data: any = {};
+      try { data = raw ? JSON.parse(raw) : {}; } catch { data = { msg: raw }; }
+      if (!res.ok) {
+        setAuthError(data.msg || `Server error (${res.status}). Please try again later.`);
+        return;
+      }
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setUser(data.user);
       setFfName(data.user.ffName || '');
       setFfUid(data.user.ffUid || '');
-    } catch { setAuthError('Connection failed'); }
+    } catch { setAuthError('Unable to reach the server. Check your connection and try again.'); }
   };
 
   // ─── Load Data ────────────────────────────────────────────────────────────
